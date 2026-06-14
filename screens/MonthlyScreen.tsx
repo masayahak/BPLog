@@ -85,8 +85,17 @@ export default function MonthlyScreen() {
     return (
       <View style={styles.row}>
         <View style={styles.dateCol}>
-          <Text style={styles.dateMain}>{mm}/{dd}</Text>
-          <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
+          {locale === 'en' ? (
+            <>
+              <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
+              <Text style={styles.dateMain}>{dd}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.dateMain}>{mm}/{dd}</Text>
+              <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
+            </>
+          )}
         </View>
         <TouchableOpacity style={styles.cellTouchable} onPress={() => handleCellTap(item.date, 'AM')}>
           <DataCell data={item.am} pulseLabel={t('pulse_label')} />
