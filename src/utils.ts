@@ -41,12 +41,19 @@ export function formatMonthHeader(year: number, month: number, locale: string): 
 }
 
 export function formatGraphLabel(day: number, period: Period, locale: string): string {
-  if (locale === 'ja') return `${day}${period === 'AM' ? '午前' : '午後'}`;
-  return `${day} ${period}`;
+  if (locale === 'ja') return `${day}/${period === 'AM' ? '前' : '後'}`;
+  return `${day}/${period}`;
 }
 
-export function formatLegendDay(day: number, locale: string): string {
-  return locale === 'ja' ? `${day}日` : `${day}`;
+export function formatLegendDateParts(dateStr: string, locale: string): { prefix: string; weekday: string; weekdayColor: string } {
+  const d = new Date(dateStr + 'T00:00:00');
+  const idx = d.getDay();
+  const weekday = locale === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx];
+  const weekdayColor = getWeekdayColor(idx);
+  if (locale === 'ja') {
+    return { prefix: `${d.getMonth() + 1}/${d.getDate()} `, weekday, weekdayColor };
+  }
+  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} `, weekday, weekdayColor };
 }
 
 export function toDateString(date: Date): string {

@@ -7,7 +7,7 @@ import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { loadGoals, saveGoals } from '../src/storage';
 import { Goals, Period } from '../src/types';
-import { formatMonthHeader, formatGraphLabel, formatLegendDay } from '../src/utils';
+import { formatMonthHeader, formatLegendDateParts } from '../src/utils';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -44,6 +44,7 @@ export default function GraphScreen() {
   const [dialogInitialField, setDialogInitialField] = useState<GoalField>('systolic');
   const [chartAreaHeight, setChartAreaHeight] = useState(0);
   const [legendData, setLegendData] = useState<LegendData | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const hScrollRef = useRef<ScrollView>(null);
   const lastTappedIndexRef = useRef<number>(-1);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -67,8 +68,10 @@ export default function GraphScreen() {
     if (monthly.length > 0) {
       const last = monthly[monthly.length - 1];
       setLegendData({ date: last.date, period: last.period, sys: last.systolic, dia: last.diastolic });
+      setSelectedIndex(monthly.length - 1);
     } else {
       setLegendData(null);
+      setSelectedIndex(null);
     }
   }, [ym, measurements]);
 
@@ -99,11 +102,6 @@ export default function GraphScreen() {
   const systolicData = monthly.map((m, i) => ({ value: m.systolic, dataPointIndex: i }));
   const diastolicData = monthly.map((m) => ({ value: m.diastolic }));
 
-  const labels = monthly.map((m) => {
-    const day = parseInt(m.date.split('-')[2], 10);
-    return formatGraphLabel(day, m.period, locale);
-  });
-
   const hasData = monthly.length > 0;
 
   const allValues = monthly.flatMap((m) => [m.systolic, m.diastolic]);
@@ -111,9 +109,8 @@ export default function GraphScreen() {
     ? calcYAxis(allValues, goals)
     : { minValue: 60, maxValue: 180, noOfSections: 12 };
 
-  const CHART_PADDING = 32;
-  const X_LABEL_HEIGHT = 48;
-  const chartHeight = chartAreaHeight > 0 ? Math.max(chartAreaHeight - CHART_PADDING - X_LABEL_HEIGHT, 160) : 260;
+  const CHART_PADDING = 84 + 36; // wrapper padding(32) + chartArea padding(32) + label row(20) + LineChart internal x-axis area(36)
+  const chartHeight = chartAreaHeight > 0 ? Math.max(chartAreaHeight - CHART_PADDING, 160) : 260;
 
   function onChartAreaLayout(e: LayoutChangeEvent) {
     setChartAreaHeight(e.nativeEvent.layout.height);
@@ -143,8 +140,8 @@ export default function GraphScreen() {
     await saveGoals(newGoals);
   }
 
-  const legendDay = legendData ? parseInt(legendData.date.split('-')[2], 10) : null;
   const legendPeriod = legendData?.period === 'AM' ? t('am') : t('pm');
+  const legendDateParts = legendData ? formatLegendDateParts(legendData.date, locale) : null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -180,8 +177,11 @@ export default function GraphScreen() {
         {legendData ? (
           <>
             <View style={styles.legendDate}>
-              <Text style={styles.legendDateText}>{formatLegendDay(legendDay!, locale)}</Text>
-              <Text style={styles.legendPeriodText}>{legendPeriod}</Text>
+              <Text style={styles.legendDateText}>
+                {legendDateParts!.prefix}
+                <Text style={{ color: legendDateParts!.weekdayColor }}>{legendDateParts!.weekday}</Text>
+                {` ${legendPeriod}`}
+              </Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#e63946' }]} />
@@ -216,6 +216,21 @@ export default function GraphScreen() {
         ) : chartAreaHeight > 0 ? (
           <ScrollView ref={hScrollRef} horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.chartWrapper}>
+              {selectedIndex !== null && (
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    left: 16 + 20 + selectedIndex * 60 - 1,
+                    top: 16,
+                    width: 2,
+                    height: chartHeight,
+                    backgroundColor: '#444',
+                    opacity: 0.55,
+                    zIndex: 10,
+                  }}
+                />
+              )}
               <LineChart
                 data={systolicData}
                 data2={diastolicData}
@@ -230,9 +245,6 @@ export default function GraphScreen() {
                 height={chartHeight}
                 hideYAxisText
                 yAxisLabelWidth={0}
-                xAxisLabelTexts={labels}
-                xAxisLabelTextStyle={styles.xLabel}
-                xAxisLabelsHeight={40}
                 hideRules={false}
                 rulesColor="#e0e0e0"
                 yAxisColor="#ccc"
@@ -251,8 +263,6 @@ export default function GraphScreen() {
                   thickness: 2,
                   dashWidth: 6,
                   dashGap: 4,
-                  labelText: `${t('goal_prefix')} ${goals.systolic}`,
-                  labelTextStyle: { color: '#e63946', fontSize: 12, fontWeight: '600' },
                 }}
                 showReferenceLine2
                 referenceLine2Position={goals.diastolic}
@@ -261,14 +271,12 @@ export default function GraphScreen() {
                   thickness: 2,
                   dashWidth: 6,
                   dashGap: 4,
-                  labelText: `${t('goal_prefix')} ${goals.diastolic}`,
-                  labelTextStyle: { color: '#4361ee', fontSize: 12, fontWeight: '600' },
                 }}
                 pointerConfig={{
                   activatePointersInstantlyOnTouch: true,
-                  pointerStripWidth: 1,
+                  pointerStripWidth: 0,
                   pointerStripHeight: chartHeight,
-                  pointerStripColor: '#99999966',
+                  pointerStripColor: 'transparent',
                   pointer1Color: '#e63946',
                   pointer2Color: '#4361ee',
                   pointerLabelWidth: 1,
@@ -279,15 +287,40 @@ export default function GraphScreen() {
                       lastTappedIndexRef.current = idx;
                       const m = monthly[idx];
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      requestAnimationFrame(() =>
-                        setLegendData({ date: m.date, period: m.period, sys: m.systolic, dia: m.diastolic })
-                      );
+                      requestAnimationFrame(() => {
+                        setSelectedIndex(idx);
+                        setLegendData({ date: m.date, period: m.period, sys: m.systolic, dia: m.diastolic });
+                      });
                     }
                     return <View />;
                   },
                   onTouchEnd: () => { lastTappedIndexRef.current = -1; },
                 }}
               />
+              <View style={{ height: 20, position: 'relative' }}>
+                {monthly.map((m, i) => {
+                  const label = i === 0 || monthly[i - 1].date !== m.date
+                    ? String(new Date(m.date).getDate())
+                    : '';
+                  if (!label) return null;
+                  return (
+                    <Text
+                      key={i}
+                      style={{
+                        position: 'absolute',
+                        left: 20 + i * 60 - 20,
+                        width: 40,
+                        textAlign: 'center',
+                        color: '#444',
+                        fontSize: 16,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {label}
+                    </Text>
+                  );
+                })}
+              </View>
             </View>
           </ScrollView>
         ) : null}
@@ -332,13 +365,13 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     gap: 12,
   },
-  goalBarLabel: { fontSize: 16, color: '#aaa', fontWeight: '600', marginRight: 4 },
+  goalBarLabel: { fontSize: 16, color: '#aaa', fontWeight: '600', flex: 1, textAlign: 'center' },
   goalItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: '#2e2e4a',
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 10,
   },
@@ -348,14 +381,13 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
+    gap: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#fff',
   },
-  legendDate: { alignItems: 'center', marginRight: 4 },
+  legendDate: { flex: 1 },
   legendDateText: { fontSize: 18, color: '#333', fontWeight: 'bold' },
-  legendPeriodText: { fontSize: 14, color: '#666' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 14, height: 14, borderRadius: 7 },
   legendLabel: { fontSize: 17, color: '#555', fontWeight: '600' },
@@ -371,7 +403,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
   },
-  xLabel: { fontSize: 15, color: '#555', width: 52, textAlign: 'center' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 22, color: '#aaa' },
 });

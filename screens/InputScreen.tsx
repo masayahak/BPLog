@@ -5,7 +5,7 @@ import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
-import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
+import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getDateParts, isFuturePeriod } from '../src/utils';
 import InputDialog from '../src/components/InputDialog';
 
 export default function InputScreen() {
@@ -131,6 +131,7 @@ function DayCard({
           <MeasurementCell
             label={t('am')}
             data={am}
+            period="AM"
             showAdd={showAddPeriod === 'AM'}
             isFuture={isFuturePeriod(dateStr, 'AM')}
             isToday={isToday}
@@ -142,6 +143,7 @@ function DayCard({
           <MeasurementCell
             label={t('pm')}
             data={pm}
+            period="PM"
             showAdd={showAddPeriod === 'PM'}
             isFuture={isFuturePeriod(dateStr, 'PM')}
             isToday={isToday}
@@ -157,9 +159,10 @@ function DateWithWeekday({ dateStr, isToday }: { dateStr: string; isToday: boole
   const { locale } = useLocale();
   const { prefix, weekday, suffix } = getDateParts(dateStr, locale);
   const dayIdx = getWeekdayIndex(dateStr);
+  const weekdayColor = dayIdx === 6 ? '#4361ee' : dayIdx === 0 ? '#e63946' : '#555';
   return (
     <Text style={isToday ? styles.dateText : styles.dateTextSmall}>
-      {prefix}<Text style={{ color: getWeekdayColor(dayIdx) }}>{weekday}</Text>{suffix}
+      {prefix}<Text style={{ color: weekdayColor }}>{weekday}</Text>{suffix}
     </Text>
   );
 }
@@ -167,6 +170,7 @@ function DateWithWeekday({ dateStr, isToday }: { dateStr: string; isToday: boole
 function MeasurementCell({
   label,
   data,
+  period,
   showAdd,
   isFuture,
   isToday,
@@ -174,6 +178,7 @@ function MeasurementCell({
 }: {
   label: string;
   data?: Measurement;
+  period: Period;
   showAdd: boolean;
   isFuture: boolean;
   isToday: boolean;
@@ -181,8 +186,9 @@ function MeasurementCell({
 }) {
   const { t } = useLocale();
   const s = isToday ? styles : smallStyles;
+  const cellBg = period === 'AM' ? '#f2f2f2' : '#e8e8e8';
   return (
-    <View style={[styles.cell, !data && styles.cellEmpty, !isToday && styles.cellSmall]}>
+    <View style={[styles.cell, !isToday && styles.cellSmall, { backgroundColor: cellBg }]}>
       <Text style={s.periodLabel}>{label}</Text>
       {data ? (
         <>
@@ -253,9 +259,9 @@ const styles = StyleSheet.create({
   },
   dayLabel: { fontSize: 28, fontWeight: 'bold', color: '#888' },
   dayLabelToday: { color: '#4361ee' },
-  dayLabelYesterday: { fontSize: 24, color: '#aaa' },
+  dayLabelYesterday: { fontSize: 24, color: '#444' },
   dateText: { fontSize: 28, color: '#555' },
-  dateTextSmall: { fontSize: 24, color: '#888' },
+  dateTextSmall: { fontSize: 24, color: '#444' },
 
   cells: { flexDirection: 'row' },
   cellDivider: { width: 1, backgroundColor: '#e0e0e0', marginHorizontal: 8 },
@@ -266,16 +272,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#f8f9fa',
   },
-  cellEmpty: { backgroundColor: '#f0f0f0' },
-  cellSmall: { paddingVertical: 6 },
-  periodLabel: { fontSize: 24, color: '#888', fontWeight: '600', marginBottom: 6 },
+cellSmall: { paddingVertical: 6 },
+  periodLabel: { fontSize: 24, color: '#333', fontWeight: '600', marginBottom: 6 },
   timeText: { fontSize: 16, color: '#999', marginBottom: 4 },
   bpText: { fontSize: 28, fontWeight: 'bold', marginBottom: 2 },
   systolicText: { color: '#e63946' },
   bpSep: { color: '#888' },
   diastolicText: { color: '#4361ee' },
   pulseText: { fontSize: 22, color: '#333', fontWeight: '600' },
-  emptyText: { fontSize: 15, color: '#bbb', marginTop: 16 },
+  emptyText: { fontSize: 15, color: '#333', marginTop: 16 },
 
   addBtn: {
     marginTop: 8,
@@ -295,7 +300,7 @@ const styles = StyleSheet.create({
 });
 
 const smallStyles = {
-  periodLabel: { fontSize: 20, color: '#aaa', fontWeight: '600' as const, marginBottom: 6 },
+  periodLabel: { fontSize: 20, color: '#333', fontWeight: '600' as const, marginBottom: 6 },
   timeText: { fontSize: 14, color: '#bbb', marginBottom: 4 },
   bpText: { fontSize: 24, fontWeight: 'bold' as const, marginBottom: 2 },
   pulseText: { fontSize: 18, color: '#555', fontWeight: '600' as const },
