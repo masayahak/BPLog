@@ -8,17 +8,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';
+import { useLocale } from '../context/LocaleContext';
 
 type Field = 'systolic' | 'diastolic' | 'pulse';
-
-const FIELD_LABELS: Record<Field, string> = {
-  systolic: '上の血圧',
-  diastolic: '下の血圧',
-  pulse: '脈拍',
-};
 
 const FIELD_RANGES: Record<Field, { min: number; max: number }> = {
   systolic: { min: 60, max: 250 },
@@ -47,8 +42,15 @@ function isOutOfRange(field: Field, raw: string): boolean {
 
 export default function InputDialog({ visible, onClose, targetDate, targetPeriod, initialValues }: Props) {
   const { addMeasurement, addMeasurementForDate } = useMeasurements();
+  const { t } = useLocale();
   const [values, setValues] = useState<Record<Field, string>>({ systolic: '', diastolic: '', pulse: '' });
   const [activeField, setActiveField] = useState<Field>('systolic');
+
+  const fieldLabels: Record<Field, string> = {
+    systolic: t('field_systolic'),
+    diastolic: t('field_diastolic'),
+    pulse: t('field_pulse'),
+  };
 
   useEffect(() => {
     if (visible) {
@@ -60,17 +62,13 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   const activeIsError = isOutOfRange(activeField, values[activeField]);
 
   function pressKey(key: string) {
-    if (values[activeField].length < 3) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setValues((prev) => {
-      const current = prev[activeField];
-      if (current.length >= 3) return prev;
-      return { ...prev, [activeField]: current + key };
-    });
+    if (values[activeField].length >= 3) return;
+    hapticKeyPress();
+    setValues((prev) => ({ ...prev, [activeField]: prev[activeField] + key }));
   }
 
   function pressDelete() {
+    hapticDelete();
     setValues((prev) => ({
       ...prev,
       [activeField]: prev[activeField].slice(0, -1),
@@ -97,6 +95,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
     } else {
       addMeasurement(sys, dia, pul);
     }
+    hapticSave();
     handleClose();
   }
 
@@ -107,10 +106,9 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   }
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
       <SafeAreaView style={styles.container}>
 
-        {/* 表示部 */}
         <View style={styles.fieldsSection}>
           {FIELDS.map((field) => (
             <TouchableOpacity
@@ -122,7 +120,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
               ]}
               onPress={() => setActiveField(field)}
             >
-              <Text style={styles.fieldLabel}>{FIELD_LABELS[field]}</Text>
+              <Text style={styles.fieldLabel}>{fieldLabels[field]}</Text>
               {initialValues != null && (
                 <Text style={styles.prevValue}>{initialValues[field]}</Text>
               )}
@@ -132,11 +130,10 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
             </TouchableOpacity>
           ))}
           {initialValues != null && (
-            <Text style={styles.recordedLabel}>記録済みの値</Text>
+            <Text style={styles.recordedLabel}>{t('recorded_value')}</Text>
           )}
         </View>
 
-        {/* 数値入力部 */}
         <View style={styles.keypadSection}>
           <View style={styles.keypad}>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => (
@@ -166,15 +163,14 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
               disabled={activeIsError}
             >
               <Text style={[styles.keyText, styles.keyEnterText]}>
-                {activeField === 'pulse' ? '保存' : '次へ'}
+                {activeField === 'pulse' ? t('save') : t('next')}
               </Text>
             </Pressable>
           </View>
         </View>
 
-        {/* 閉じるボタン */}
         <TouchableOpacity style={styles.closeBtn} onPress={handleClose}>
-          <Text style={styles.closeText}>閉じる</Text>
+          <Text style={styles.closeText}>{t('close')}</Text>
         </TouchableOpacity>
 
       </SafeAreaView>

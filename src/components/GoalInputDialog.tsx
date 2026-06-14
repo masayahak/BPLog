@@ -8,15 +8,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
 import { Goals } from '../types';
+import { useLocale } from '../context/LocaleContext';
 
 type Field = 'systolic' | 'diastolic';
-
-const FIELD_LABELS: Record<Field, string> = {
-  systolic: '上の血圧',
-  diastolic: '下の血圧',
-};
 
 const FIELD_RANGES: Record<Field, { min: number; max: number }> = {
   systolic: { min: 60, max: 250 },
@@ -41,8 +37,14 @@ function isOutOfRange(field: Field, raw: string): boolean {
 }
 
 export default function GoalInputDialog({ visible, initialField, currentGoals, onSave, onClose }: Props) {
+  const { t } = useLocale();
   const [values, setValues] = useState<Record<Field, string>>({ systolic: '', diastolic: '' });
   const [activeField, setActiveField] = useState<Field>(initialField);
+
+  const fieldLabels: Record<Field, string> = {
+    systolic: t('field_systolic'),
+    diastolic: t('field_diastolic'),
+  };
 
   useEffect(() => {
     if (visible) {
@@ -54,13 +56,13 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
   const activeIsError = isOutOfRange(activeField, values[activeField]);
 
   function pressKey(key: string) {
-    const current = values[activeField];
-    if (current.length >= 3) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (values[activeField].length >= 3) return;
+    hapticKeyPress();
     setValues((prev) => ({ ...prev, [activeField]: prev[activeField] + key }));
   }
 
   function pressDelete() {
+    hapticDelete();
     setValues((prev) => ({
       ...prev,
       [activeField]: prev[activeField].slice(0, -1),
@@ -84,11 +86,12 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
       systolic: !isNaN(sys) && !isOutOfRange('systolic', values.systolic) ? sys : currentGoals.systolic,
       diastolic: !isNaN(dia) && !isOutOfRange('diastolic', values.diastolic) ? dia : currentGoals.diastolic,
     });
+    hapticSave();
     onClose();
   }
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
 
         <View style={styles.fieldsSection}>
@@ -102,14 +105,14 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
               ]}
               onPress={() => setActiveField(field)}
             >
-              <Text style={styles.fieldLabel}>{FIELD_LABELS[field]}</Text>
+              <Text style={styles.fieldLabel}>{fieldLabels[field]}</Text>
               <Text style={styles.prevValue}>{currentGoals[field]}</Text>
               <Text style={[styles.fieldValue, isOutOfRange(field, values[field]) && styles.fieldValueError]}>
                 {values[field] || '---'}
               </Text>
             </TouchableOpacity>
           ))}
-          <Text style={styles.recordedLabel}>目標の現在値</Text>
+          <Text style={styles.recordedLabel}>{t('current_target')}</Text>
         </View>
 
         <View style={styles.keypadSection}>
@@ -141,14 +144,14 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
               disabled={activeIsError}
             >
               <Text style={[styles.keyText, styles.keyEnterText]}>
-                {activeField === 'diastolic' ? '保存' : '次へ'}
+                {activeField === 'diastolic' ? t('save') : t('next')}
               </Text>
             </Pressable>
           </View>
         </View>
 
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <Text style={styles.closeText}>閉じる</Text>
+          <Text style={styles.closeText}>{t('close')}</Text>
         </TouchableOpacity>
 
       </SafeAreaView>

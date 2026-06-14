@@ -1,13 +1,18 @@
 {
   "expo": {
-    "name": "bp_tmp",
-    "slug": "bp_tmp",
+    "name": "BPLog",
+    "slug": "bplog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hakamatasoft.bplog",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,6 +25,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-localization"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fff736ff-beef-4250-ae81-78a993845ab8"
+      }
     }
   }
 }

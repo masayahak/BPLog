@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { Measurement, Period } from '../types';
 import { loadMeasurements, saveMeasurements } from '../storage';
 import { getPeriod, toDateString, toTimeString } from '../utils';
+import { initFirstLaunch, checkAndRequestReview } from '../reviewRequest';
 
 type State = { measurements: Measurement[] };
 
@@ -40,12 +41,19 @@ export function MeasurementProvider({ children }: { children: React.ReactNode })
   const [state, dispatch] = useReducer(reducer, { measurements: [] });
 
   useEffect(() => {
+    initFirstLaunch();
     loadMeasurements().then((data) => dispatch({ type: 'LOAD', payload: data }));
   }, []);
 
   useEffect(() => {
     saveMeasurements(state.measurements);
   }, [state.measurements]);
+
+  useEffect(() => {
+    if (state.measurements.length > 0) {
+      checkAndRequestReview(state.measurements.length);
+    }
+  }, [state.measurements.length]);
 
   function addMeasurement(systolic: number, diastolic: number, pulse: number) {
     const now = new Date();

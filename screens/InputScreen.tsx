@@ -2,15 +2,19 @@ import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
+import { useLocale } from '../src/context/LocaleContext';
+import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
-import { toDateString, toTimeString, getPeriod, getWeekday, getWeekdayColor, isFuturePeriod } from '../src/utils';
+import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
 import InputDialog from '../src/components/InputDialog';
 
 export default function InputScreen() {
   const { measurements } = useMeasurements();
+  const { t } = useLocale();
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogTarget, setDialogTarget] = useState<{ date: string; period: Period } | null>(null);
   const [dialogInitial, setDialogInitial] = useState<{ systolic: number; diastolic: number; pulse: number } | undefined>();
+  const [infoVisible, setInfoVisible] = useState(false);
   const lastTapRef = useRef<{ key: string; time: number }>({ key: '', time: 0 });
   const insets = useSafeAreaInsets();
 
@@ -29,15 +33,15 @@ export default function InputScreen() {
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
     const key = `${date}-${period}`;
-    const t = Date.now();
-    if (lastTapRef.current.key === key && t - lastTapRef.current.time < 350) {
+    const tapTime = Date.now();
+    if (lastTapRef.current.key === key && tapTime - lastTapRef.current.time < 350) {
       const existing = getMeasurement(date, period);
       setDialogTarget({ date, period });
       setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
       setDialogVisible(true);
       lastTapRef.current = { key: '', time: 0 };
     } else {
-      lastTapRef.current = { key, time: t };
+      lastTapRef.current = { key, time: tapTime };
     }
   }
 
@@ -53,13 +57,16 @@ export default function InputScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>血圧入力</Text>
+        <Text style={styles.headerTitle}>{t('screen_input_title')}</Text>
+        <TouchableOpacity style={styles.infoBtn} onPress={() => setInfoVisible(true)}>
+          <Text style={styles.infoBtnText}>ⓘ</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
         <View style={styles.spacer} />
         <DayCard
-          label="昨日"
+          label={t('yesterday')}
           dateStr={yesterdayStr}
           am={getMeasurement(yesterdayStr, 'AM')}
           pm={getMeasurement(yesterdayStr, 'PM')}
@@ -69,7 +76,7 @@ export default function InputScreen() {
         />
         <View style={styles.spacer} />
         <DayCard
-          label="今日"
+          label={t('today')}
           dateStr={todayStr}
           am={getMeasurement(todayStr, 'AM')}
           pm={getMeasurement(todayStr, 'PM')}
@@ -88,6 +95,7 @@ export default function InputScreen() {
         targetPeriod={dialogTarget?.period}
         initialValues={dialogInitial}
       />
+      <InfoModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
     </View>
   );
 }
@@ -111,6 +119,7 @@ function DayCard({
   onCellTap: (date: string, period: Period) => void;
   onAddPress?: () => void;
 }) {
+  const { t } = useLocale();
   return (
     <View style={[styles.card, isToday ? styles.cardToday : styles.cardYesterday]}>
       <View style={styles.cardHeader}>
@@ -120,9 +129,10 @@ function DayCard({
       <View style={styles.cells}>
         <TouchableOpacity style={styles.cellTouchable} onPress={() => onCellTap(dateStr, 'AM')}>
           <MeasurementCell
-            label="午前"
+            label={t('am')}
             data={am}
             showAdd={showAddPeriod === 'AM'}
+            isFuture={isFuturePeriod(dateStr, 'AM')}
             isToday={isToday}
             onAddPress={onAddPress}
           />
@@ -130,9 +140,10 @@ function DayCard({
         <View style={styles.cellDivider} />
         <TouchableOpacity style={styles.cellTouchable} onPress={() => onCellTap(dateStr, 'PM')}>
           <MeasurementCell
-            label="午後"
+            label={t('pm')}
             data={pm}
             showAdd={showAddPeriod === 'PM'}
+            isFuture={isFuturePeriod(dateStr, 'PM')}
             isToday={isToday}
             onAddPress={onAddPress}
           />
@@ -143,13 +154,12 @@ function DayCard({
 }
 
 function DateWithWeekday({ dateStr, isToday }: { dateStr: string; isToday: boolean }) {
-  const d = new Date(dateStr + 'T00:00:00');
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  const w = getWeekday(dateStr);
+  const { locale } = useLocale();
+  const { prefix, weekday, suffix } = getDateParts(dateStr, locale);
+  const dayIdx = getWeekdayIndex(dateStr);
   return (
     <Text style={isToday ? styles.dateText : styles.dateTextSmall}>
-      {m}月{day}日(<Text style={{ color: getWeekdayColor(w) }}>{w}</Text>)
+      {prefix}<Text style={{ color: getWeekdayColor(dayIdx) }}>{weekday}</Text>{suffix}
     </Text>
   );
 }
@@ -158,15 +168,18 @@ function MeasurementCell({
   label,
   data,
   showAdd,
+  isFuture,
   isToday,
   onAddPress,
 }: {
   label: string;
   data?: Measurement;
   showAdd: boolean;
+  isFuture: boolean;
   isToday: boolean;
   onAddPress?: () => void;
 }) {
+  const { t } = useLocale();
   const s = isToday ? styles : smallStyles;
   return (
     <View style={[styles.cell, !data && styles.cellEmpty, !isToday && styles.cellSmall]}>
@@ -179,14 +192,16 @@ function MeasurementCell({
             <Text style={styles.bpSep}> / </Text>
             <Text style={styles.diastolicText}>{data.diastolic}</Text>
           </Text>
-          <Text style={s.pulseText}>脈 {data.pulse}</Text>
+          <Text style={s.pulseText}>{t('pulse_label')} {data.pulse}</Text>
         </>
       ) : showAdd ? (
         <TouchableOpacity style={styles.addBtn} onPress={onAddPress}>
           <Text style={styles.addBtnText}>＋</Text>
         </TouchableOpacity>
+      ) : isFuture ? (
+        <Text style={styles.emptyText}>—</Text>
       ) : (
-        <Text style={styles.emptyText}>未測定</Text>
+        <Text style={styles.emptyText}>{t('not_recorded')}</Text>
       )}
     </View>
   );
@@ -199,9 +214,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a2e',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  infoBtn: { position: 'absolute', right: 20 },
+  infoBtnText: { fontSize: 26, color: '#aaa' },
 
   content: {
     flex: 1,

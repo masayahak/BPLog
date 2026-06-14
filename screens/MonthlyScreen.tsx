@@ -4,12 +4,14 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 const ROW_HEIGHT = 73;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
+import { useLocale } from '../src/context/LocaleContext';
 import { Measurement, Period } from '../src/types';
-import { getMonthDates, getWeekday, getWeekdayColor, isFuturePeriod } from '../src/utils';
+import { getMonthDates, getWeekdayIndex, getWeekdayLabel, getWeekdayColor, formatMonthHeader, isFuturePeriod } from '../src/utils';
 import InputDialog from '../src/components/InputDialog';
 
 export default function MonthlyScreen() {
   const { measurements } = useMeasurements();
+  const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -62,20 +64,21 @@ export default function MonthlyScreen() {
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
     const key = `${date}-${period}`;
-    const now = Date.now();
-    if (lastTapRef.current.key === key && now - lastTapRef.current.time < 350) {
+    const tapTime = Date.now();
+    if (lastTapRef.current.key === key && tapTime - lastTapRef.current.time < 350) {
       const existing = measurements.find((m) => m.date === date && m.period === period);
       setDialogTarget({ date, period });
       setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
       setDialogVisible(true);
       lastTapRef.current = { key: '', time: 0 };
     } else {
-      lastTapRef.current = { key, time: now };
+      lastTapRef.current = { key, time: tapTime };
     }
   }
 
   function renderRow({ item }: { item: Row }) {
-    const w = getWeekday(item.date);
+    const dayIdx = getWeekdayIndex(item.date);
+    const w = getWeekdayLabel(item.date, locale);
     const mm = item.date.slice(5, 7);
     const dd = item.date.slice(8, 10);
 
@@ -83,13 +86,13 @@ export default function MonthlyScreen() {
       <View style={styles.row}>
         <View style={styles.dateCol}>
           <Text style={styles.dateMain}>{mm}/{dd}</Text>
-          <Text style={[styles.dateWeek, { color: getWeekdayColor(w) }]}>{w}</Text>
+          <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
         </View>
         <TouchableOpacity style={styles.cellTouchable} onPress={() => handleCellTap(item.date, 'AM')}>
-          <DataCell data={item.am} />
+          <DataCell data={item.am} pulseLabel={t('pulse_label')} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cellTouchable} onPress={() => handleCellTap(item.date, 'PM')}>
-          <DataCell data={item.pm} />
+          <DataCell data={item.pm} pulseLabel={t('pulse_label')} />
         </TouchableOpacity>
       </View>
     );
@@ -101,7 +104,7 @@ export default function MonthlyScreen() {
         <TouchableOpacity style={styles.navBtn} onPress={prevMonth}>
           <Text style={styles.navText}>◀</Text>
         </TouchableOpacity>
-        <Text style={styles.monthLabel}>{year}年 {month}月</Text>
+        <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
         <TouchableOpacity
           style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
           onPress={nextMonth}
@@ -114,10 +117,10 @@ export default function MonthlyScreen() {
       <View style={styles.colHeader}>
         <View style={styles.dateCol} />
         <View style={styles.periodHeader}>
-          <Text style={styles.periodHeaderText}>午 前</Text>
+          <Text style={styles.periodHeaderText}>{t('am')}</Text>
         </View>
         <View style={styles.periodHeader}>
-          <Text style={styles.periodHeaderText}>午 後</Text>
+          <Text style={styles.periodHeaderText}>{t('pm')}</Text>
         </View>
       </View>
 
@@ -154,7 +157,7 @@ export default function MonthlyScreen() {
   );
 }
 
-function DataCell({ data }: { data?: Measurement }) {
+function DataCell({ data, pulseLabel }: { data?: Measurement; pulseLabel: string }) {
   return (
     <View style={[styles.dataCell, !data && styles.dataCellEmpty]}>
       {data ? (
@@ -165,7 +168,7 @@ function DataCell({ data }: { data?: Measurement }) {
             <Text style={styles.bpSep}>/</Text>
             <Text style={styles.diastolicText}>{data.diastolic}</Text>
           </Text>
-          <Text style={styles.pulseText}>脈{data.pulse}</Text>
+          <Text style={styles.pulseText}>{pulseLabel}{data.pulse}</Text>
         </>
       ) : (
         <Text style={styles.emptyDash}>—</Text>

@@ -5,24 +5,48 @@ export function getPeriod(time: string): Period {
   return hour < 12 ? 'AM' : 'PM';
 }
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function getWeekday(dateStr: string): string {
-  return WEEKDAYS[new Date(dateStr + 'T00:00:00').getDay()];
+export function getWeekdayIndex(dateStr: string): number {
+  return new Date(dateStr + 'T00:00:00').getDay();
 }
 
-export function getWeekdayColor(w: string): string {
-  if (w === '土') return '#4361ee';
-  if (w === '日') return '#e63946';
+export function getWeekdayLabel(dateStr: string, locale: string): string {
+  const idx = getWeekdayIndex(dateStr);
+  return locale === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx];
+}
+
+// dayIndex: 0=Sun(red), 6=Sat(blue), else gray
+export function getWeekdayColor(dayIndex: number): string {
+  if (dayIndex === 6) return '#4361ee';
+  if (dayIndex === 0) return '#e63946';
   return '#555';
 }
 
-export function formatDate(dateStr: string): string {
+export function getDateParts(dateStr: string, locale: string): { prefix: string; weekday: string; suffix: string } {
   const d = new Date(dateStr + 'T00:00:00');
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  const w = WEEKDAYS[d.getDay()];
-  return `${m}月${day}日(${w})`;
+  const idx = d.getDay();
+  const weekday = locale === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx];
+  if (locale === 'ja') {
+    return { prefix: `${d.getMonth() + 1}月${d.getDate()}日(`, weekday, suffix: ')' };
+  }
+  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} (`, weekday, suffix: ')' };
+}
+
+export function formatMonthHeader(year: number, month: number, locale: string): string {
+  if (locale === 'ja') return `${year}年 ${month}月`;
+  return `${MONTHS_EN[month - 1]} ${year}`;
+}
+
+export function formatGraphLabel(day: number, period: Period, locale: string): string {
+  if (locale === 'ja') return `${day}${period === 'AM' ? '午前' : '午後'}`;
+  return `${day} ${period}`;
+}
+
+export function formatLegendDay(day: number, locale: string): string {
+  return locale === 'ja' ? `${day}日` : `${day}`;
 }
 
 export function toDateString(date: Date): string {

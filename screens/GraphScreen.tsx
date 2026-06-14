@@ -4,8 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-gifted-charts';
 import * as Haptics from 'expo-haptics';
 import { useMeasurements } from '../src/context/MeasurementContext';
+import { useLocale } from '../src/context/LocaleContext';
 import { loadGoals, saveGoals } from '../src/storage';
 import { Goals, Period } from '../src/types';
+import { formatMonthHeader, formatGraphLabel, formatLegendDay } from '../src/utils';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -32,6 +34,7 @@ function calcYAxis(values: number[], goals: Goals) {
 
 export default function GraphScreen() {
   const { measurements } = useMeasurements();
+  const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -58,7 +61,6 @@ export default function GraphScreen() {
       return a.period === 'AM' ? -1 : 1;
     });
 
-  // 月切替時: 選択リセット・最終値を初期表示
   useEffect(() => {
     lastTappedIndexRef.current = -1;
     isFirstLegendRender.current = true;
@@ -70,7 +72,6 @@ export default function GraphScreen() {
     }
   }, [ym, measurements]);
 
-  // legendData 変化時にフェードイン（初回スキップ）
   useEffect(() => {
     if (isFirstLegendRender.current) {
       isFirstLegendRender.current = false;
@@ -100,7 +101,7 @@ export default function GraphScreen() {
 
   const labels = monthly.map((m) => {
     const day = parseInt(m.date.split('-')[2], 10);
-    return `${day}${m.period === 'AM' ? '午前' : '午後'}`;
+    return formatGraphLabel(day, m.period, locale);
   });
 
   const hasData = monthly.length > 0;
@@ -143,7 +144,7 @@ export default function GraphScreen() {
   }
 
   const legendDay = legendData ? parseInt(legendData.date.split('-')[2], 10) : null;
-  const legendPeriod = legendData?.period === 'AM' ? '午前' : '午後';
+  const legendPeriod = legendData?.period === 'AM' ? t('am') : t('pm');
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -151,7 +152,7 @@ export default function GraphScreen() {
         <TouchableOpacity style={styles.navBtn} onPress={prevMonth}>
           <Text style={styles.navText}>◀</Text>
         </TouchableOpacity>
-        <Text style={styles.monthLabel}>{year}年 {month}月</Text>
+        <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
         <TouchableOpacity
           style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
           onPress={nextMonth}
@@ -162,15 +163,15 @@ export default function GraphScreen() {
       </View>
 
       <View style={styles.goalBar}>
-        <Text style={styles.goalBarLabel}>目標値</Text>
+        <Text style={styles.goalBarLabel}>{t('target')}</Text>
         <TouchableOpacity style={styles.goalItem} onPress={() => openDialog('systolic')}>
           <View style={[styles.goalDot, { backgroundColor: '#e63946' }]} />
-          <Text style={styles.goalItemLabel}>上</Text>
+          <Text style={styles.goalItemLabel}>{t('upper_short')}</Text>
           <Text style={styles.goalValue}>{goals.systolic}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.goalItem} onPress={() => openDialog('diastolic')}>
           <View style={[styles.goalDot, { backgroundColor: '#4361ee' }]} />
-          <Text style={styles.goalItemLabel}>下</Text>
+          <Text style={styles.goalItemLabel}>{t('lower_short')}</Text>
           <Text style={styles.goalValue}>{goals.diastolic}</Text>
         </TouchableOpacity>
       </View>
@@ -179,17 +180,17 @@ export default function GraphScreen() {
         {legendData ? (
           <>
             <View style={styles.legendDate}>
-              <Text style={styles.legendDateText}>{legendDay}日</Text>
+              <Text style={styles.legendDateText}>{formatLegendDay(legendDay!, locale)}</Text>
               <Text style={styles.legendPeriodText}>{legendPeriod}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#e63946' }]} />
-              <Text style={styles.legendLabel}>上</Text>
+              <Text style={styles.legendLabel}>{t('upper_short')}</Text>
               <Text style={[styles.legendValue, { color: '#e63946' }]}>{legendData.sys}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#4361ee' }]} />
-              <Text style={styles.legendLabel}>下</Text>
+              <Text style={styles.legendLabel}>{t('lower_short')}</Text>
               <Text style={[styles.legendValue, { color: '#4361ee' }]}>{legendData.dia}</Text>
             </View>
           </>
@@ -197,11 +198,11 @@ export default function GraphScreen() {
           <>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#e63946' }]} />
-              <Text style={styles.legendLabel}>上(収縮期)</Text>
+              <Text style={styles.legendLabel}>{t('upper_long')}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#4361ee' }]} />
-              <Text style={styles.legendLabel}>下(拡張期)</Text>
+              <Text style={styles.legendLabel}>{t('lower_long')}</Text>
             </View>
           </>
         )}
@@ -210,7 +211,7 @@ export default function GraphScreen() {
       <View style={styles.chartArea} onLayout={onChartAreaLayout}>
         {!hasData ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>この月のデータはありません</Text>
+            <Text style={styles.emptyText}>{t('no_data')}</Text>
           </View>
         ) : chartAreaHeight > 0 ? (
           <ScrollView ref={hScrollRef} horizontal showsHorizontalScrollIndicator={false}>
@@ -250,7 +251,7 @@ export default function GraphScreen() {
                   thickness: 2,
                   dashWidth: 6,
                   dashGap: 4,
-                  labelText: `目標 ${goals.systolic}`,
+                  labelText: `${t('goal_prefix')} ${goals.systolic}`,
                   labelTextStyle: { color: '#e63946', fontSize: 12, fontWeight: '600' },
                 }}
                 showReferenceLine2
@@ -260,7 +261,7 @@ export default function GraphScreen() {
                   thickness: 2,
                   dashWidth: 6,
                   dashGap: 4,
-                  labelText: `目標 ${goals.diastolic}`,
+                  labelText: `${t('goal_prefix')} ${goals.diastolic}`,
                   labelTextStyle: { color: '#4361ee', fontSize: 12, fontWeight: '600' },
                 }}
                 pointerConfig={{
