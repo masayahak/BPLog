@@ -91,8 +91,12 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
   }
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
+
+        <View style={styles.dialogHeader}>
+          <Text style={styles.recordedLabelTop}>{t('current_target')}</Text>
+        </View>
 
         <View style={styles.fieldsSection}>
           {FIELDS.map((field) => (
@@ -112,20 +116,25 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
               </Text>
             </TouchableOpacity>
           ))}
-          <Text style={styles.recordedLabel}>{t('current_target')}</Text>
         </View>
 
+        <View style={styles.keypadFiller} />
+
         <View style={styles.keypadSection}>
-          <View style={styles.keypad}>
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => (
-              <Pressable
-                key={k}
-                style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-                onPress={() => pressKey(k)}
-              >
-                <Text style={styles.keyText}>{k}</Text>
-              </Pressable>
-            ))}
+          {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']].map((row) => (
+            <View key={row[0]} style={styles.keyRow}>
+              {row.map((k) => (
+                <Pressable
+                  key={k}
+                  style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+                  onPress={() => pressKey(k)}
+                >
+                  <Text style={styles.keyText}>{k}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ))}
+          <View style={styles.keyRow}>
             <Pressable
               style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
               onPress={pressDelete}
@@ -161,9 +170,16 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
+  dialogHeader: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
   fieldsSection: {
     paddingHorizontal: 16,
-    paddingTop: 32,
+    paddingTop: 8,
     paddingBottom: 16,
     gap: 10,
   },
@@ -191,7 +207,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#999',
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'right',
+    marginRight: 16,
     fontWeight: '600',
   },
   fieldValue: {
@@ -202,23 +219,24 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   fieldValueError: { color: '#e63946' },
-  recordedLabel: {
-    fontSize: 18,
+  recordedLabelTop: {
+    flex: 1,
+    fontSize: 16,
     color: '#999',
     fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
+    textAlign: 'right',
+    marginRight: 96,
   },
-  keypadSection: { paddingHorizontal: 16, paddingBottom: 8 },
-  keypad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  keypadFiller: { flexGrow: 1 },
+  keypadSection: { flexGrow: 0, flexShrink: 1, flexBasis: 400, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4 },
+  keyRow: { flex: 1, flexDirection: 'row' },
   key: {
-    width: '30%',
-    aspectRatio: 1.6,
+    flex: 1,
     backgroundColor: '#fff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    margin: 5,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

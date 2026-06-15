@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Pressable,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';
@@ -40,8 +42,19 @@ function isOutOfRange(field: Field, raw: string): boolean {
   return val < min || val > max;
 }
 
+function TrashIcon({ size = 26, color = '#e63946' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
 export default function InputDialog({ visible, onClose, targetDate, targetPeriod, initialValues }: Props) {
-  const { addMeasurement, addMeasurementForDate } = useMeasurements();
+  const { addMeasurement, addMeasurementForDate, deleteMeasurement } = useMeasurements();
   const { t } = useLocale();
   const [values, setValues] = useState<Record<Field, string>>({ systolic: '', diastolic: '', pulse: '' });
   const [activeField, setActiveField] = useState<Field>('systolic');
@@ -105,9 +118,45 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
     onClose();
   }
 
+  function handleDelete() {
+    if (!targetDate || !targetPeriod) return;
+    Alert.alert('', t('delete_confirm'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete_record'),
+        style: 'destructive',
+        onPress: () => {
+          deleteMeasurement(targetDate, targetPeriod);
+          hapticKeyPress();
+          handleClose();
+        },
+      },
+    ]);
+  }
+
+  const canDelete = initialValues != null && !!targetDate && !!targetPeriod;
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={handleClose}>
       <SafeAreaView style={styles.container}>
+
+        <View style={styles.dialogHeader}>
+          {initialValues != null && (
+            <>
+              {canDelete && (
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={handleDelete}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('delete_record')}
+                >
+                  <TrashIcon size={24} color="#fff" />
+                </TouchableOpacity>
+              )}
+              <Text style={styles.recordedLabelTop}>{t('recorded_value')}</Text>
+            </>
+          )}
+        </View>
 
         <View style={styles.fieldsSection}>
           {FIELDS.map((field) => (
@@ -129,22 +178,25 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
               </Text>
             </TouchableOpacity>
           ))}
-          {initialValues != null && (
-            <Text style={styles.recordedLabel}>{t('recorded_value')}</Text>
-          )}
         </View>
 
+        <View style={styles.keypadFiller} />
+
         <View style={styles.keypadSection}>
-          <View style={styles.keypad}>
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => (
-              <Pressable
-                key={k}
-                style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-                onPress={() => pressKey(k)}
-              >
-                <Text style={styles.keyText}>{k}</Text>
-              </Pressable>
-            ))}
+          {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']].map((row) => (
+            <View key={row[0]} style={styles.keyRow}>
+              {row.map((k) => (
+                <Pressable
+                  key={k}
+                  style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+                  onPress={() => pressKey(k)}
+                >
+                  <Text style={styles.keyText}>{k}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ))}
+          <View style={styles.keyRow}>
             <Pressable
               style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
               onPress={pressDelete}
@@ -183,11 +235,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  dialogHeader: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+  deleteBtn: {
+    alignSelf: 'flex-start',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#e63946',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   fieldsSection: {
     paddingHorizontal: 16,
-    paddingTop: 32,
-    paddingBottom: 16,
-    gap: 10,
+    paddingTop: 8,
+    paddingBottom: 6,
+    gap: 8,
   },
   fieldRow: {
     flexDirection: 'row',
@@ -227,33 +295,40 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#999',
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'right',
+    marginRight: 16,
     fontWeight: '600',
   },
-  recordedLabel: {
-    fontSize: 18,
+  recordedLabelTop: {
+    flex: 1,
+    fontSize: 16,
     color: '#999',
     fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
+    textAlign: 'right',
+    marginRight: 96,
+  },
+  keypadFiller: {
+    flexGrow: 1,
   },
   keypadSection: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 400,
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  keypad: {
+  keyRow: {
+    flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
   },
   key: {
-    width: '30%',
-    aspectRatio: 1.6,
+    flex: 1,
     backgroundColor: '#fff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    margin: 5,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -279,8 +354,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   closeBtn: {
-    margin: 16,
-    padding: 18,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
+    padding: 16,
     borderRadius: 14,
     backgroundColor: '#e0e0e0',
     alignItems: 'center',

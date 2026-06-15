@@ -25,6 +25,9 @@ type Translations = {
   next: string;
   save: string;
   close: string;
+  delete_record: string;
+  delete_confirm: string;
+  cancel: string;
   // Info modal
   info_title: string;
   info_free_title: string;
@@ -63,6 +66,9 @@ const ja: Translations = {
   next: "次へ",
   save: "保存",
   close: "閉じる",
+  delete_record: "削除",
+  delete_confirm: "この記録を削除しますか？",
+  cancel: "キャンセル",
   info_title: "アプリについて",
   info_free_title: "完全無料",
   info_free_body:
@@ -100,6 +106,9 @@ const en: Translations = {
   next: "Next",
   save: "Save",
   close: "Close",
+  delete_record: "Delete",
+  delete_confirm: "Delete this record?",
+  cancel: "Cancel",
   info_title: "About",
   info_free_title: "Completely Free",
   info_free_body:

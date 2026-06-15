@@ -8,7 +8,8 @@ type State = { measurements: Measurement[] };
 
 type Action =
   | { type: 'LOAD'; payload: Measurement[] }
-  | { type: 'UPSERT'; payload: Measurement };
+  | { type: 'UPSERT'; payload: Measurement }
+  | { type: 'DELETE'; payload: { date: string; period: Period } };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -26,6 +27,14 @@ function reducer(state: State, action: Action): State {
       }
       return { measurements: [...state.measurements, m] };
     }
+    case 'DELETE': {
+      const { date, period } = action.payload;
+      return {
+        measurements: state.measurements.filter(
+          (x) => !(x.date === date && x.period === period)
+        ),
+      };
+    }
   }
 }
 
@@ -33,6 +42,7 @@ type ContextType = {
   measurements: Measurement[];
   addMeasurement: (systolic: number, diastolic: number, pulse: number) => void;
   addMeasurementForDate: (date: string, period: Period, systolic: number, diastolic: number, pulse: number) => void;
+  deleteMeasurement: (date: string, period: Period) => void;
 };
 
 const MeasurementContext = createContext<ContextType>({} as ContextType);
@@ -89,8 +99,12 @@ export function MeasurementProvider({ children }: { children: React.ReactNode })
     dispatch({ type: 'UPSERT', payload: entry });
   }
 
+  function deleteMeasurement(date: string, period: Period) {
+    dispatch({ type: 'DELETE', payload: { date, period } });
+  }
+
   return (
-    <MeasurementContext.Provider value={{ measurements: state.measurements, addMeasurement, addMeasurementForDate }}>
+    <MeasurementContext.Provider value={{ measurements: state.measurements, addMeasurement, addMeasurementForDate, deleteMeasurement }}>
       {children}
     </MeasurementContext.Provider>
   );

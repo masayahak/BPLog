@@ -32,7 +32,7 @@ export function getDateParts(dateStr: string, locale: string): { prefix: string;
   if (locale === 'ja') {
     return { prefix: `${d.getMonth() + 1}月${d.getDate()}日(`, weekday, suffix: ')' };
   }
-  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} (`, weekday, suffix: ')' };
+  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} `, weekday, suffix: '' };
 }
 
 export function formatMonthHeader(year: number, month: number, locale: string): string {
