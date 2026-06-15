@@ -5,7 +5,7 @@ import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
-import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getDateParts, isFuturePeriod } from '../src/utils';
+import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
 import InputDialog from '../src/components/InputDialog';
 
 export default function InputScreen() {
@@ -159,7 +159,7 @@ function DateWithWeekday({ dateStr, isToday }: { dateStr: string; isToday: boole
   const { locale } = useLocale();
   const { prefix, weekday, suffix } = getDateParts(dateStr, locale);
   const dayIdx = getWeekdayIndex(dateStr);
-  const weekdayColor = dayIdx === 6 ? '#4361ee' : dayIdx === 0 ? '#e63946' : '#555';
+  const weekdayColor = getWeekdayColor(dayIdx);
   return (
     <Text style={isToday ? styles.dateText : styles.dateTextSmall}>
       {prefix}<Text style={{ color: weekdayColor }}>{weekday}</Text>{suffix}

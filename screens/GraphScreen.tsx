@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-gifted-charts';
-import * as Haptics from 'expo-haptics';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
-import { loadGoals, saveGoals } from '../src/storage';
+import { loadGoals, saveGoals, DEFAULT_GOALS } from '../src/storage';
 import { Goals, Period } from '../src/types';
-import { formatMonthHeader, formatLegendDateParts } from '../src/utils';
+import { formatMonthHeader, formatLegendDateParts, toDateString } from '../src/utils';
+import { hapticKeyPress } from '../src/haptics';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -39,7 +39,7 @@ export default function GraphScreen() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [goals, setGoals] = useState<Goals>({ systolic: 130, diastolic: 80 });
+  const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogInitialField, setDialogInitialField] = useState<GoalField>('systolic');
   const [chartAreaHeight, setChartAreaHeight] = useState(0);
@@ -118,7 +118,7 @@ export default function GraphScreen() {
 
   useEffect(() => {
     if (!hasData || chartAreaHeight === 0) return;
-    const today = now.toISOString().slice(0, 10);
+    const today = toDateString(now);
     let targetIndex = monthly.length - 1;
     for (let i = monthly.length - 1; i >= 0; i--) {
       if (monthly[i].date === today) { targetIndex = i; break; }
@@ -286,7 +286,7 @@ export default function GraphScreen() {
                     if (idx >= 0 && idx !== lastTappedIndexRef.current) {
                       lastTappedIndexRef.current = idx;
                       const m = monthly[idx];
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      hapticKeyPress();
                       requestAnimationFrame(() => {
                         setSelectedIndex(idx);
                         setLegendData({ date: m.date, period: m.period, sys: m.systolic, dia: m.diastolic });

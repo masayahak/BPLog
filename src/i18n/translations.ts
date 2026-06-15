@@ -17,7 +17,6 @@ type Translations = {
   upper_long: string;
   lower_long: string;
   no_data: string;
-  goal_prefix: string;
   field_systolic: string;
   field_diastolic: string;
   field_pulse: string;
@@ -56,7 +55,6 @@ const ja: Translations = {
   upper_long: "上(収縮期)",
   lower_long: "下(拡張期)",
   no_data: "この月のデータはありません",
-  goal_prefix: "目標",
   field_systolic: "上の血圧",
   field_diastolic: "下の血圧",
   field_pulse: "脈拍",
@@ -68,7 +66,7 @@ const ja: Translations = {
   info_title: "アプリについて",
   info_free_title: "完全無料",
   info_free_body:
-    "このアプリは完全に無料です。広告も、サブスクリプションも、課金機能も一切ありません。\n\nシニアエンジニが自分のために作ったアプリを公開しています。",
+    "このアプリは完全に無料です。広告も、サブスクリプションも、課金機能も一切ありません。\n\nシニアエンジニアが自分のために作ったアプリを公開しています。",
   info_privacy_title: "プライバシー",
   info_privacy_body:
     "すべての測定データはお使いのデバイス内にのみ保存されます。個人情報の収集・送信は一切行いません。インターネット通信もしません。\n\nソースコードは GitHub で100%公開されています。",
@@ -94,7 +92,6 @@ const en: Translations = {
   upper_long: "Systolic",
   lower_long: "Diastolic",
   no_data: "No data for this month",
-  goal_prefix: "Goal",
   field_systolic: "Systolic",
   field_diastolic: "Diastolic",
   field_pulse: "Pulse",

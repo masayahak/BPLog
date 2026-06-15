@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import { Measurement, Period } from '../types';
 import { loadMeasurements, saveMeasurements } from '../storage';
 import { getPeriod, toDateString, toTimeString } from '../utils';
@@ -39,13 +39,18 @@ const MeasurementContext = createContext<ContextType>({} as ContextType);
 
 export function MeasurementProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { measurements: [] });
+  const loadedRef = useRef(false);
 
   useEffect(() => {
     initFirstLaunch();
-    loadMeasurements().then((data) => dispatch({ type: 'LOAD', payload: data }));
+    loadMeasurements().then((data) => {
+      loadedRef.current = true;
+      dispatch({ type: 'LOAD', payload: data });
+    });
   }, []);
 
   useEffect(() => {
+    if (!loadedRef.current) return; // 初回ロード完了まで保存しない（空配列での上書き防止）
     saveMeasurements(state.measurements);
   }, [state.measurements]);
 
