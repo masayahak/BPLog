@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
@@ -6,6 +6,7 @@ import { useLocale } from '../src/context/LocaleContext';
 import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
 import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
+import { useDoubleTap } from '../src/hooks/useDoubleTap';
 import InputDialog from '../src/components/InputDialog';
 
 export default function InputScreen() {
@@ -15,7 +16,7 @@ export default function InputScreen() {
   const [dialogTarget, setDialogTarget] = useState<{ date: string; period: Period } | null>(null);
   const [dialogInitial, setDialogInitial] = useState<{ systolic: number; diastolic: number; pulse: number } | undefined>();
   const [infoVisible, setInfoVisible] = useState(false);
-  const lastTapRef = useRef<{ key: string; time: number }>({ key: '', time: 0 });
+  const detectDoubleTap = useDoubleTap();
   const insets = useSafeAreaInsets();
 
   const now = new Date();
@@ -32,17 +33,11 @@ export default function InputScreen() {
 
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
-    const key = `${date}-${period}`;
-    const tapTime = Date.now();
-    if (lastTapRef.current.key === key && tapTime - lastTapRef.current.time < 350) {
-      const existing = getMeasurement(date, period);
-      setDialogTarget({ date, period });
-      setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
-      setDialogVisible(true);
-      lastTapRef.current = { key: '', time: 0 };
-    } else {
-      lastTapRef.current = { key, time: tapTime };
-    }
+    if (!detectDoubleTap(`${date}-${period}`)) return;
+    const existing = getMeasurement(date, period);
+    setDialogTarget({ date, period });
+    setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
+    setDialogVisible(true);
   }
 
   function handleAddPress() {
@@ -272,7 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#f8f9fa',
   },
-cellSmall: { paddingVertical: 6 },
+  cellSmall: { paddingVertical: 6 },
   periodLabel: { fontSize: 24, color: '#333', fontWeight: '600', marginBottom: 6 },
   timeText: { fontSize: 16, color: '#999', marginBottom: 4 },
   bpText: { fontSize: 28, fontWeight: 'bold', marginBottom: 2 },

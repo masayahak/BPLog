@@ -7,6 +7,8 @@ import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { Measurement, Period } from '../src/types';
 import { getMonthDates, getWeekdayIndex, getWeekdayLabel, getWeekdayColor, formatMonthHeader, isFuturePeriod } from '../src/utils';
+import { useMonthNav } from '../src/hooks/useMonthNav';
+import { useDoubleTap } from '../src/hooks/useDoubleTap';
 import InputDialog from '../src/components/InputDialog';
 
 export default function MonthlyScreen() {
@@ -14,12 +16,11 @@ export default function MonthlyScreen() {
   const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const { year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogTarget, setDialogTarget] = useState<{ date: string; period: Period } | null>(null);
   const [dialogInitial, setDialogInitial] = useState<{ systolic: number; diastolic: number; pulse: number } | undefined>();
-  const lastTapRef = useRef<{ key: string; time: number }>({ key: '', time: 0 });
+  const detectDoubleTap = useDoubleTap();
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -36,22 +37,6 @@ export default function MonthlyScreen() {
     }
   }, [year, month]);
 
-  function prevMonth() {
-    if (month === 1) { setMonth(12); setYear((y) => y - 1); }
-    else setMonth((m) => m - 1);
-  }
-
-  function nextMonth() {
-    const ny = now.getFullYear();
-    const nm = now.getMonth() + 1;
-    if (year > ny || (year === ny && month >= nm)) return;
-    if (month === 12) { setMonth(1); setYear((y) => y + 1); }
-    else setMonth((m) => m + 1);
-  }
-
-  const canGoNext =
-    year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
-
   const dates = getMonthDates(year, month);
   const rows = dates.map((date) => ({
     date,
@@ -63,17 +48,11 @@ export default function MonthlyScreen() {
 
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
-    const key = `${date}-${period}`;
-    const tapTime = Date.now();
-    if (lastTapRef.current.key === key && tapTime - lastTapRef.current.time < 350) {
-      const existing = measurements.find((m) => m.date === date && m.period === period);
-      setDialogTarget({ date, period });
-      setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
-      setDialogVisible(true);
-      lastTapRef.current = { key: '', time: 0 };
-    } else {
-      lastTapRef.current = { key, time: tapTime };
-    }
+    if (!detectDoubleTap(`${date}-${period}`)) return;
+    const existing = measurements.find((m) => m.date === date && m.period === period);
+    setDialogTarget({ date, period });
+    setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
+    setDialogVisible(true);
   }
 
   function renderRow({ item }: { item: Row }) {

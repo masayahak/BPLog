@@ -8,6 +8,7 @@ import { loadGoals, saveGoals, DEFAULT_GOALS } from '../src/storage';
 import { Goals, Period } from '../src/types';
 import { formatMonthHeader, formatLegendDateParts, toDateString } from '../src/utils';
 import { hapticKeyPress } from '../src/haptics';
+import { useMonthNav } from '../src/hooks/useMonthNav';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -26,10 +27,12 @@ function calcYAxis(values: number[], goals: Goals) {
   const all = [...values, goals.systolic, goals.diastolic];
   const rawMin = Math.min(...all);
   const rawMax = Math.max(...all);
-  const minValue = Math.floor((rawMin - Y_PADDING) / 10) * 10;
-  const maxValue = Math.ceil((rawMax + Y_PADDING) / 10) * 10;
-  const noOfSections = Math.round((maxValue - minValue) / 10);
-  return { minValue, maxValue, noOfSections };
+  const axisMin = Math.floor((rawMin - Y_PADDING) / 10) * 10;
+  const axisMax = Math.ceil((rawMax + Y_PADDING) / 10) * 10;
+  const noOfSections = Math.round((axisMax - axisMin) / 10);
+  // gifted-charts は yAxisOffset を Y軸下限に取り、データ・目標線を offset 分シフトして描画する。
+  // maxValue にはオフセット適用後（ゼロ基準）の上限を渡す。
+  return { yAxisOffset: axisMin, maxValue: axisMax - axisMin, noOfSections };
 }
 
 export default function GraphScreen() {
@@ -37,8 +40,7 @@ export default function GraphScreen() {
   const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const { year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
   const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogInitialField, setDialogInitialField] = useState<GoalField>('systolic');
@@ -84,30 +86,15 @@ export default function GraphScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
   }, [legendData]);
 
-  function prevMonth() {
-    if (month === 1) { setMonth(12); setYear((y) => y - 1); }
-    else setMonth((m) => m - 1);
-  }
-
-  function nextMonth() {
-    const ny = now.getFullYear();
-    const nm = now.getMonth() + 1;
-    if (year > ny || (year === ny && month >= nm)) return;
-    if (month === 12) { setMonth(1); setYear((y) => y + 1); }
-    else setMonth((m) => m + 1);
-  }
-
-  const canGoNext = year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
-
   const systolicData = monthly.map((m, i) => ({ value: m.systolic, dataPointIndex: i }));
   const diastolicData = monthly.map((m) => ({ value: m.diastolic }));
 
   const hasData = monthly.length > 0;
 
   const allValues = monthly.flatMap((m) => [m.systolic, m.diastolic]);
-  const { minValue, maxValue, noOfSections } = hasData
+  const { yAxisOffset, maxValue, noOfSections } = hasData
     ? calcYAxis(allValues, goals)
-    : { minValue: 60, maxValue: 180, noOfSections: 12 };
+    : { yAxisOffset: 60, maxValue: 120, noOfSections: 12 };
 
   const CHART_PADDING = 84 + 36; // wrapper padding(32) + chartArea padding(32) + label row(20) + LineChart internal x-axis area(36)
   const chartHeight = chartAreaHeight > 0 ? Math.max(chartAreaHeight - CHART_PADDING, 160) : 260;
@@ -255,7 +242,7 @@ export default function GraphScreen() {
                 spacing={60}
                 noOfSections={noOfSections}
                 maxValue={maxValue}
-                minValue={minValue}
+                yAxisOffset={yAxisOffset}
                 showReferenceLine1
                 referenceLine1Position={goals.systolic}
                 referenceLine1Config={{
@@ -403,6 +390,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
   },
-empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 22, color: '#aaa' },
 });

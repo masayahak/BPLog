@@ -4,13 +4,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
   StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
 import { Goals } from '../types';
 import { useLocale } from '../context/LocaleContext';
+import Keypad from './Keypad';
+import { dialogStyles } from './dialogStyles';
 
 type Field = 'systolic' | 'diastolic';
 
@@ -54,6 +55,7 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
   }, [visible, initialField]);
 
   const activeIsError = isOutOfRange(activeField, values[activeField]);
+  const isLastField = FIELDS.indexOf(activeField) === FIELDS.length - 1;
 
   function pressKey(key: string) {
     if (values[activeField].length >= 3) return;
@@ -71,17 +73,17 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
 
   function pressEnter() {
     if (activeIsError) return;
-    const currentIdx = FIELDS.indexOf(activeField);
-    if (currentIdx < FIELDS.length - 1) {
-      setActiveField(FIELDS[currentIdx + 1]);
-    } else {
+    if (isLastField) {
       handleSave();
+    } else {
+      setActiveField(FIELDS[FIELDS.indexOf(activeField) + 1]);
     }
   }
 
   function handleSave() {
     const sys = parseInt(values.systolic, 10);
     const dia = parseInt(values.diastolic, 10);
+    // 未入力・範囲外フィールドは現在値を維持する。
     onSave({
       systolic: !isNaN(sys) && !isOutOfRange('systolic', values.systolic) ? sys : currentGoals.systolic,
       diastolic: !isNaN(dia) && !isOutOfRange('diastolic', values.diastolic) ? dia : currentGoals.diastolic,
@@ -92,10 +94,11 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <SafeAreaView style={dialogStyles.container}>
 
-        <View style={styles.dialogHeader}>
-          <Text style={styles.recordedLabelTop}>{t('current_target')}</Text>
+        <View style={dialogStyles.dialogHeader}>
+          <Text style={dialogStyles.recordedLabelTop}>{t('current_target')}</Text>
         </View>
 
         <View style={styles.fieldsSection}>
@@ -103,151 +106,48 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
             <TouchableOpacity
               key={field}
               style={[
-                styles.fieldRow,
-                activeField === field && styles.fieldRowActive,
-                isOutOfRange(field, values[field]) && styles.fieldRowError,
+                dialogStyles.fieldRow,
+                activeField === field && dialogStyles.fieldRowActive,
+                isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
               ]}
               onPress={() => setActiveField(field)}
             >
-              <Text style={styles.fieldLabel}>{fieldLabels[field]}</Text>
-              <Text style={styles.prevValue}>{currentGoals[field]}</Text>
-              <Text style={[styles.fieldValue, isOutOfRange(field, values[field]) && styles.fieldValueError]}>
+              <Text style={dialogStyles.fieldLabel}>{fieldLabels[field]}</Text>
+              <Text style={dialogStyles.prevValue}>{currentGoals[field]}</Text>
+              <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
                 {values[field] || '---'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <View style={styles.keypadFiller} />
+        <View style={dialogStyles.keypadFiller} />
 
-        <View style={styles.keypadSection}>
-          {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']].map((row) => (
-            <View key={row[0]} style={styles.keyRow}>
-              {row.map((k) => (
-                <Pressable
-                  key={k}
-                  style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-                  onPress={() => pressKey(k)}
-                >
-                  <Text style={styles.keyText}>{k}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ))}
-          <View style={styles.keyRow}>
-            <Pressable
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-              onPress={pressDelete}
-            >
-              <Text style={styles.keyText}>⌫</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-              onPress={() => pressKey('0')}
-            >
-              <Text style={styles.keyText}>0</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.key, styles.keyEnter, activeIsError && styles.keyEnterDisabled]}
-              onPress={pressEnter}
-              disabled={activeIsError}
-            >
-              <Text style={[styles.keyText, styles.keyEnterText]}>
-                {activeField === 'diastolic' ? t('save') : t('next')}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
+        <Keypad
+          onKey={pressKey}
+          onDelete={pressDelete}
+          onEnter={pressEnter}
+          enterLabel={isLastField ? t('save') : t('next')}
+          enterDisabled={activeIsError}
+        />
 
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <Text style={styles.closeText}>{t('close')}</Text>
+          <Text style={dialogStyles.closeText}>{t('close')}</Text>
         </TouchableOpacity>
 
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  dialogHeader: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
   fieldsSection: {
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 16,
     gap: 10,
   },
-  fieldRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  fieldRowActive: {
-    borderColor: '#4361ee',
-    backgroundColor: '#eef0ff',
-  },
-  fieldRowError: {
-    borderColor: '#e63946',
-    backgroundColor: '#fff0f1',
-  },
-  fieldLabel: { fontSize: 22, color: '#555', fontWeight: '600' },
-  prevValue: {
-    fontSize: 22,
-    color: '#999',
-    flex: 1,
-    textAlign: 'right',
-    marginRight: 16,
-    fontWeight: '600',
-  },
-  fieldValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a2e',
-    minWidth: 80,
-    textAlign: 'right',
-  },
-  fieldValueError: { color: '#e63946' },
-  recordedLabelTop: {
-    flex: 1,
-    fontSize: 16,
-    color: '#999',
-    fontWeight: '600',
-    textAlign: 'right',
-    marginRight: 96,
-  },
-  keypadFiller: { flexGrow: 1 },
-  keypadSection: { flexGrow: 0, flexShrink: 1, flexBasis: 400, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4 },
-  keyRow: { flex: 1, flexDirection: 'row' },
-  key: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  keyPressed: { backgroundColor: '#d0d0d0' },
-  keyEnter: { backgroundColor: '#4361ee' },
-  keyEnterDisabled: { backgroundColor: '#b0b0b0' },
-  keyText: { fontSize: 28, fontWeight: '600', color: '#1a1a2e' },
-  keyEnterText: { color: '#fff', fontSize: 22 },
   closeBtn: {
     margin: 16,
     padding: 18,
@@ -255,5 +155,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     alignItems: 'center',
   },
-  closeText: { fontSize: 22, color: '#555', fontWeight: '600' },
 });

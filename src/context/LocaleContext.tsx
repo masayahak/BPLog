@@ -19,8 +19,11 @@ function detectLocale(): Locale {
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const locale = detectLocale();
-  const t = useMemo(() => (key: TranslationKey) => translationsMap[locale][key], [locale]);
-  return <LocaleContext.Provider value={{ locale, t }}>{children}</LocaleContext.Provider>;
+  const value = useMemo<LocaleContextType>(
+    () => ({ locale, t: (key) => translationsMap[locale][key] }),
+    [locale]
+  );
+  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
 export function useLocale() {

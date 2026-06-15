@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { MeasurementProvider } from './src/context/MeasurementContext';
 import { LocaleProvider, useLocale } from './src/context/LocaleContext';
 import InputScreen from './screens/InputScreen';
@@ -54,7 +54,7 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <LocaleProvider>
         <MeasurementProvider>
           <AppNavigator />

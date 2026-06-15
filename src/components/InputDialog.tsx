@@ -4,16 +4,17 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
   StyleSheet,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';
 import { useLocale } from '../context/LocaleContext';
+import Keypad from './Keypad';
+import { dialogStyles } from './dialogStyles';
 
 type Field = 'systolic' | 'diastolic' | 'pulse';
 
@@ -73,6 +74,10 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   }, [visible]);
 
   const activeIsError = isOutOfRange(activeField, values[activeField]);
+  const allFieldsValid = FIELDS.every((f) => values[f] !== '' && !isOutOfRange(f, values[f]));
+  const isLastField = FIELDS.indexOf(activeField) === FIELDS.length - 1;
+  // 最終フィールド(保存)では全フィールドの妥当性で判定。範囲外/空の非アクティブ値の保存を防ぐ。
+  const enterDisabled = isLastField ? !allFieldsValid : activeIsError;
 
   function pressKey(key: string) {
     if (values[activeField].length >= 3) return;
@@ -89,12 +94,11 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   }
 
   function pressEnter() {
-    if (activeIsError) return;
-    const currentIdx = FIELDS.indexOf(activeField);
-    if (currentIdx < FIELDS.length - 1) {
-      setActiveField(FIELDS[currentIdx + 1]);
-    } else {
+    if (enterDisabled) return;
+    if (isLastField) {
       handleSave();
+    } else {
+      setActiveField(FIELDS[FIELDS.indexOf(activeField) + 1]);
     }
   }
 
@@ -102,7 +106,6 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
     const sys = parseInt(values.systolic, 10);
     const dia = parseInt(values.diastolic, 10);
     const pul = parseInt(values.pulse, 10);
-    if (!sys || !dia || !pul) return;
     if (targetDate && targetPeriod) {
       addMeasurementForDate(targetDate, targetPeriod, sys, dia, pul);
     } else {
@@ -138,9 +141,10 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={handleClose}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <SafeAreaView style={dialogStyles.container}>
 
-        <View style={styles.dialogHeader}>
+        <View style={dialogStyles.dialogHeader}>
           {initialValues != null && (
             <>
               {canDelete && (
@@ -153,7 +157,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
                   <TrashIcon size={24} color="#fff" />
                 </TouchableOpacity>
               )}
-              <Text style={styles.recordedLabelTop}>{t('recorded_value')}</Text>
+              <Text style={dialogStyles.recordedLabelTop}>{t('recorded_value')}</Text>
             </>
           )}
         </View>
@@ -163,85 +167,44 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
             <TouchableOpacity
               key={field}
               style={[
-                styles.fieldRow,
-                activeField === field && styles.fieldRowActive,
-                isOutOfRange(field, values[field]) && styles.fieldRowError,
+                dialogStyles.fieldRow,
+                activeField === field && dialogStyles.fieldRowActive,
+                isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
               ]}
               onPress={() => setActiveField(field)}
             >
-              <Text style={styles.fieldLabel}>{fieldLabels[field]}</Text>
+              <Text style={dialogStyles.fieldLabel}>{fieldLabels[field]}</Text>
               {initialValues != null && (
-                <Text style={styles.prevValue}>{initialValues[field]}</Text>
+                <Text style={dialogStyles.prevValue}>{initialValues[field]}</Text>
               )}
-              <Text style={[styles.fieldValue, isOutOfRange(field, values[field]) && styles.fieldValueError]}>
+              <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
                 {values[field] || '---'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <View style={styles.keypadFiller} />
+        <View style={dialogStyles.keypadFiller} />
 
-        <View style={styles.keypadSection}>
-          {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']].map((row) => (
-            <View key={row[0]} style={styles.keyRow}>
-              {row.map((k) => (
-                <Pressable
-                  key={k}
-                  style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-                  onPress={() => pressKey(k)}
-                >
-                  <Text style={styles.keyText}>{k}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ))}
-          <View style={styles.keyRow}>
-            <Pressable
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-              onPress={pressDelete}
-            >
-              <Text style={styles.keyText}>⌫</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
-              onPress={() => pressKey('0')}
-            >
-              <Text style={styles.keyText}>0</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.key, styles.keyEnter, activeIsError && styles.keyEnterDisabled]}
-              onPress={pressEnter}
-              disabled={activeIsError}
-            >
-              <Text style={[styles.keyText, styles.keyEnterText]}>
-                {activeField === 'pulse' ? t('save') : t('next')}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
+        <Keypad
+          onKey={pressKey}
+          onDelete={pressDelete}
+          onEnter={pressEnter}
+          enterLabel={isLastField ? t('save') : t('next')}
+          enterDisabled={enterDisabled}
+        />
 
         <TouchableOpacity style={styles.closeBtn} onPress={handleClose}>
-          <Text style={styles.closeText}>{t('close')}</Text>
+          <Text style={dialogStyles.closeText}>{t('close')}</Text>
         </TouchableOpacity>
 
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  dialogHeader: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
   deleteBtn: {
     alignSelf: 'flex-start',
     width: 44,
@@ -257,102 +220,6 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     gap: 8,
   },
-  fieldRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  fieldRowActive: {
-    borderColor: '#4361ee',
-    backgroundColor: '#eef0ff',
-  },
-  fieldRowError: {
-    borderColor: '#e63946',
-    backgroundColor: '#fff0f1',
-  },
-  fieldLabel: {
-    fontSize: 22,
-    color: '#555',
-    fontWeight: '600',
-  },
-  fieldValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a2e',
-    minWidth: 80,
-    textAlign: 'right',
-  },
-  fieldValueError: {
-    color: '#e63946',
-  },
-  prevValue: {
-    fontSize: 22,
-    color: '#999',
-    flex: 1,
-    textAlign: 'right',
-    marginRight: 16,
-    fontWeight: '600',
-  },
-  recordedLabelTop: {
-    flex: 1,
-    fontSize: 16,
-    color: '#999',
-    fontWeight: '600',
-    textAlign: 'right',
-    marginRight: 96,
-  },
-  keypadFiller: {
-    flexGrow: 1,
-  },
-  keypadSection: {
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 400,
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 4,
-  },
-  keyRow: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  key: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  keyPressed: {
-    backgroundColor: '#d0d0d0',
-  },
-  keyEnter: {
-    backgroundColor: '#4361ee',
-  },
-  keyEnterDisabled: {
-    backgroundColor: '#b0b0b0',
-  },
-  keyText: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#1a1a2e',
-  },
-  keyEnterText: {
-    color: '#fff',
-    fontSize: 22,
-  },
   closeBtn: {
     marginHorizontal: 16,
     marginTop: 8,
@@ -361,10 +228,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#e0e0e0',
     alignItems: 'center',
-  },
-  closeText: {
-    fontSize: 22,
-    color: '#555',
-    fontWeight: '600',
   },
 });
