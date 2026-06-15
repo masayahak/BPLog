@@ -14,6 +14,18 @@ import GoalInputDialog from '../src/components/GoalInputDialog';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const Y_PADDING = 10;
 
+// チャート横方向のレイアウト定数。LineChart の initialSpacing/spacing と、
+// 選択中の縦線・X軸ラベルの絶対座標計算で共有する（ズレ防止）。
+const INITIAL_SPACING = 20;     // 左端から最初のデータ点までの距離
+const POINT_SPACING = 60;       // データ点間の距離
+const CHART_INNER_PADDING = 16; // chartWrapper の padding
+const X_LABEL_WIDTH = 40;       // X軸日付ラベルの幅（中央寄せ用）
+
+// データ点 index の X 座標（chartWrapper 内ローカル座標）。
+function pointX(index: number): number {
+  return INITIAL_SPACING + index * POINT_SPACING;
+}
+
 type GoalField = 'systolic' | 'diastolic';
 
 type LegendData = {
@@ -110,8 +122,8 @@ export default function GraphScreen() {
     for (let i = monthly.length - 1; i >= 0; i--) {
       if (monthly[i].date === today) { targetIndex = i; break; }
     }
-    const pointX = 20 + targetIndex * 60;
-    const scrollX = Math.max(0, pointX - SCREEN_WIDTH + 120);
+    const targetX = pointX(targetIndex);
+    const scrollX = Math.max(0, targetX - SCREEN_WIDTH + 120);
     setTimeout(() => {
       hScrollRef.current?.scrollTo({ x: scrollX, animated: false });
     }, 0);
@@ -208,7 +220,7 @@ export default function GraphScreen() {
                   pointerEvents="none"
                   style={{
                     position: 'absolute',
-                    left: 16 + 20 + selectedIndex * 60 - 1,
+                    left: CHART_INNER_PADDING + pointX(selectedIndex) - 1,
                     top: 16,
                     width: 2,
                     height: chartHeight,
@@ -228,7 +240,7 @@ export default function GraphScreen() {
                 dataPointsColor1="#e63946"
                 dataPointsColor2="#4361ee"
                 dataPointsRadius={6}
-                width={Math.max(SCREEN_WIDTH - 32, monthly.length * 60)}
+                width={Math.max(SCREEN_WIDTH - CHART_INNER_PADDING * 2, monthly.length * POINT_SPACING)}
                 height={chartHeight}
                 hideYAxisText
                 yAxisLabelWidth={0}
@@ -238,8 +250,8 @@ export default function GraphScreen() {
                 xAxisColor="#ccc"
                 curved
                 isAnimated
-                initialSpacing={20}
-                spacing={60}
+                initialSpacing={INITIAL_SPACING}
+                spacing={POINT_SPACING}
                 noOfSections={noOfSections}
                 maxValue={maxValue}
                 yAxisOffset={yAxisOffset}
@@ -295,8 +307,8 @@ export default function GraphScreen() {
                       key={i}
                       style={{
                         position: 'absolute',
-                        left: 20 + i * 60 - 20,
-                        width: 40,
+                        left: pointX(i) - X_LABEL_WIDTH / 2,
+                        width: X_LABEL_WIDTH,
                         textAlign: 'center',
                         color: '#444',
                         fontSize: 16,

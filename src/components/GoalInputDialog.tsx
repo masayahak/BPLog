@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Modal,
   View,
@@ -7,18 +7,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
-import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
+import { hapticSave } from '../haptics';
 import { Goals } from '../types';
 import { useLocale } from '../context/LocaleContext';
+import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
 import Keypad from './Keypad';
 import { dialogStyles } from './dialogStyles';
 
 type Field = 'systolic' | 'diastolic';
-
-const FIELD_RANGES: Record<Field, { min: number; max: number }> = {
-  systolic: { min: 60, max: 250 },
-  diastolic: { min: 40, max: 150 },
-};
 
 const FIELDS: Field[] = ['systolic', 'diastolic'];
 
@@ -30,17 +26,13 @@ type Props = {
   onClose: () => void;
 };
 
-function isOutOfRange(field: Field, raw: string): boolean {
-  if (!raw) return false;
-  const val = parseInt(raw, 10);
-  const { min, max } = FIELD_RANGES[field];
-  return val < min || val > max;
-}
-
 export default function GoalInputDialog({ visible, initialField, currentGoals, onSave, onClose }: Props) {
   const { t } = useLocale();
-  const [values, setValues] = useState<Record<Field, string>>({ systolic: '', diastolic: '' });
-  const [activeField, setActiveField] = useState<Field>(initialField);
+  const {
+    values, activeField, setActiveField, isOutOfRange,
+    pressKey, pressDelete, advanceField, reset,
+    activeIsError, isLastField,
+  } = useNumericKeypad(FIELDS, BP_RANGES);
 
   const fieldLabels: Record<Field, string> = {
     systolic: t('field_systolic'),
@@ -48,35 +40,15 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
   };
 
   useEffect(() => {
-    if (visible) {
-      setValues({ systolic: '', diastolic: '' });
-      setActiveField(initialField);
-    }
+    if (visible) reset(initialField);
   }, [visible, initialField]);
-
-  const activeIsError = isOutOfRange(activeField, values[activeField]);
-  const isLastField = FIELDS.indexOf(activeField) === FIELDS.length - 1;
-
-  function pressKey(key: string) {
-    if (values[activeField].length >= 3) return;
-    hapticKeyPress();
-    setValues((prev) => ({ ...prev, [activeField]: prev[activeField] + key }));
-  }
-
-  function pressDelete() {
-    hapticDelete();
-    setValues((prev) => ({
-      ...prev,
-      [activeField]: prev[activeField].slice(0, -1),
-    }));
-  }
 
   function pressEnter() {
     if (activeIsError) return;
     if (isLastField) {
       handleSave();
     } else {
-      setActiveField(FIELDS[FIELDS.indexOf(activeField) + 1]);
+      advanceField();
     }
   }
 

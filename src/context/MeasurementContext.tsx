@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import { Measurement, Period } from '../types';
 import { loadMeasurements, saveMeasurements } from '../storage';
-import { getPeriod, toDateString, toTimeString } from '../utils';
 import { initFirstLaunch, checkAndRequestReview } from '../reviewRequest';
 
 type State = { measurements: Measurement[] };
@@ -40,7 +39,6 @@ function reducer(state: State, action: Action): State {
 
 type ContextType = {
   measurements: Measurement[];
-  addMeasurement: (systolic: number, diastolic: number, pulse: number) => void;
   addMeasurementForDate: (date: string, period: Period, systolic: number, diastolic: number, pulse: number) => void;
   deleteMeasurement: (date: string, period: Period) => void;
 };
@@ -70,22 +68,6 @@ export function MeasurementProvider({ children }: { children: React.ReactNode })
     }
   }, [state.measurements.length]);
 
-  function addMeasurement(systolic: number, diastolic: number, pulse: number) {
-    const now = new Date();
-    const time = toTimeString(now);
-    const period: Period = getPeriod(time);
-    const entry: Measurement = {
-      id: now.getTime().toString(),
-      date: toDateString(now),
-      time,
-      period,
-      systolic,
-      diastolic,
-      pulse,
-    };
-    dispatch({ type: 'UPSERT', payload: entry });
-  }
-
   function addMeasurementForDate(date: string, period: Period, systolic: number, diastolic: number, pulse: number) {
     const entry: Measurement = {
       id: Date.now().toString(),
@@ -104,7 +86,7 @@ export function MeasurementProvider({ children }: { children: React.ReactNode })
   }
 
   return (
-    <MeasurementContext.Provider value={{ measurements: state.measurements, addMeasurement, addMeasurementForDate, deleteMeasurement }}>
+    <MeasurementContext.Provider value={{ measurements: state.measurements, addMeasurementForDate, deleteMeasurement }}>
       {children}
     </MeasurementContext.Provider>
   );

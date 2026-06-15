@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Modal,
   View,
@@ -9,20 +9,15 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { hapticKeyPress, hapticDelete, hapticSave } from '../haptics';
+import { hapticKeyPress, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';
 import { useLocale } from '../context/LocaleContext';
+import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
 import Keypad from './Keypad';
 import { dialogStyles } from './dialogStyles';
 
 type Field = 'systolic' | 'diastolic' | 'pulse';
-
-const FIELD_RANGES: Record<Field, { min: number; max: number }> = {
-  systolic: { min: 60, max: 250 },
-  diastolic: { min: 40, max: 150 },
-  pulse: { min: 30, max: 220 },
-};
 
 const FIELDS: Field[] = ['systolic', 'diastolic', 'pulse'];
 
@@ -36,13 +31,6 @@ type Props = {
   initialValues?: InitialValues;
 };
 
-function isOutOfRange(field: Field, raw: string): boolean {
-  if (!raw) return false;
-  const val = parseInt(raw, 10);
-  const { min, max } = FIELD_RANGES[field];
-  return val < min || val > max;
-}
-
 function TrashIcon({ size = 26, color = '#e63946' }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -55,10 +43,13 @@ function TrashIcon({ size = 26, color = '#e63946' }: { size?: number; color?: st
 }
 
 export default function InputDialog({ visible, onClose, targetDate, targetPeriod, initialValues }: Props) {
-  const { addMeasurement, addMeasurementForDate, deleteMeasurement } = useMeasurements();
+  const { addMeasurementForDate, deleteMeasurement } = useMeasurements();
   const { t } = useLocale();
-  const [values, setValues] = useState<Record<Field, string>>({ systolic: '', diastolic: '', pulse: '' });
-  const [activeField, setActiveField] = useState<Field>('systolic');
+  const {
+    values, activeField, setActiveField, isOutOfRange,
+    pressKey, pressDelete, advanceField, reset,
+    activeIsError, isLastField, allFieldsValid,
+  } = useNumericKeypad(FIELDS, BP_RANGES);
 
   const fieldLabels: Record<Field, string> = {
     systolic: t('field_systolic'),
@@ -67,57 +58,36 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   };
 
   useEffect(() => {
-    if (visible) {
-      setValues({ systolic: '', diastolic: '', pulse: '' });
-      setActiveField('systolic');
-    }
+    if (visible) reset();
   }, [visible]);
 
-  const activeIsError = isOutOfRange(activeField, values[activeField]);
-  const allFieldsValid = FIELDS.every((f) => values[f] !== '' && !isOutOfRange(f, values[f]));
-  const isLastField = FIELDS.indexOf(activeField) === FIELDS.length - 1;
   // 最終フィールド(保存)では全フィールドの妥当性で判定。範囲外/空の非アクティブ値の保存を防ぐ。
   const enterDisabled = isLastField ? !allFieldsValid : activeIsError;
-
-  function pressKey(key: string) {
-    if (values[activeField].length >= 3) return;
-    hapticKeyPress();
-    setValues((prev) => ({ ...prev, [activeField]: prev[activeField] + key }));
-  }
-
-  function pressDelete() {
-    hapticDelete();
-    setValues((prev) => ({
-      ...prev,
-      [activeField]: prev[activeField].slice(0, -1),
-    }));
-  }
 
   function pressEnter() {
     if (enterDisabled) return;
     if (isLastField) {
       handleSave();
     } else {
-      setActiveField(FIELDS[FIELDS.indexOf(activeField) + 1]);
+      advanceField();
     }
   }
 
   function handleSave() {
-    const sys = parseInt(values.systolic, 10);
-    const dia = parseInt(values.diastolic, 10);
-    const pul = parseInt(values.pulse, 10);
-    if (targetDate && targetPeriod) {
-      addMeasurementForDate(targetDate, targetPeriod, sys, dia, pul);
-    } else {
-      addMeasurement(sys, dia, pul);
-    }
+    if (!targetDate || !targetPeriod) return;
+    addMeasurementForDate(
+      targetDate,
+      targetPeriod,
+      parseInt(values.systolic, 10),
+      parseInt(values.diastolic, 10),
+      parseInt(values.pulse, 10)
+    );
     hapticSave();
     handleClose();
   }
 
   function handleClose() {
-    setValues({ systolic: '', diastolic: '', pulse: '' });
-    setActiveField('systolic');
+    reset();
     onClose();
   }
 

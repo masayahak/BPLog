@@ -187,7 +187,7 @@ function MeasurementCell({
       <Text style={s.periodLabel}>{label}</Text>
       {data ? (
         <>
-          <Text style={s.timeText}>{data.time}</Text>
+          {data.time ? <Text style={s.timeText}>{data.time}</Text> : null}
           <Text style={s.bpText}>
             <Text style={styles.systolicText}>{data.systolic}</Text>
             <Text style={styles.bpSep}> / </Text>
