@@ -9,6 +9,7 @@ import { Goals, Period } from '../src/types';
 import { formatMonthHeader, formatLegendDateParts, toDateString } from '../src/utils';
 import { hapticKeyPress } from '../src/haptics';
 import { useMonthNav } from '../src/hooks/useMonthNav';
+import { useDoubleTap } from '../src/hooks/useDoubleTap';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -59,6 +60,7 @@ export default function GraphScreen() {
   const [chartAreaHeight, setChartAreaHeight] = useState(0);
   const [legendData, setLegendData] = useState<LegendData | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const detectDoubleTap = useDoubleTap();
   const hScrollRef = useRef<ScrollView>(null);
   const lastTappedIndexRef = useRef<number>(-1);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -130,6 +132,7 @@ export default function GraphScreen() {
   }, [chartAreaHeight, ym, monthly.length]);
 
   function openDialog(field: GoalField) {
+    if (!detectDoubleTap(`goal-${field}`)) return;
     setDialogInitialField(field);
     setDialogVisible(true);
   }
