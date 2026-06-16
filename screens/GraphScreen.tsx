@@ -52,8 +52,7 @@ export default function GraphScreen() {
   const { measurements } = useMeasurements();
   const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
-  const now = new Date();
-  const { year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
+  const { now, year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
   const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogInitialField, setDialogInitialField] = useState<GoalField>('systolic');
@@ -129,7 +128,7 @@ export default function GraphScreen() {
     setTimeout(() => {
       hScrollRef.current?.scrollTo({ x: scrollX, animated: false });
     }, 0);
-  }, [chartAreaHeight, ym, monthly.length]);
+  }, [chartAreaHeight, ym, monthly.length, now]);
 
   function openDialog(field: GoalField) {
     if (!detectDoubleTap(`goal-${field}`)) return;

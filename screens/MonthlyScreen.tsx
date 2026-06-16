@@ -15,8 +15,7 @@ export default function MonthlyScreen() {
   const { measurements } = useMeasurements();
   const { locale, t } = useLocale();
   const insets = useSafeAreaInsets();
-  const now = new Date();
-  const { year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
+  const { now, year, month, prevMonth, nextMonth, canGoNext } = useMonthNav();
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogTarget, setDialogTarget] = useState<{ date: string; period: Period } | null>(null);
   const [dialogInitial, setDialogInitial] = useState<{ systolic: number; diastolic: number; pulse: number } | undefined>();
@@ -35,7 +34,7 @@ export default function MonthlyScreen() {
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [year, month]);
+  }, [year, month, now]);
 
   const dates = getMonthDates(year, month);
   const rows = dates.map((date) => ({
