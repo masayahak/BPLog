@@ -9,6 +9,8 @@ import { Measurement, Period } from '../src/types';
 import { getMonthDates, getWeekdayIndex, getWeekdayLabel, getWeekdayColor, formatMonthHeader, isFuturePeriod } from '../src/utils';
 import { useMonthNav } from '../src/hooks/useMonthNav';
 import { useDoubleTap } from '../src/hooks/useDoubleTap';
+import { hapticKeyPress } from '../src/haptics';
+import HapticButton from '../src/components/HapticButton';
 import InputDialog from '../src/components/InputDialog';
 
 export default function MonthlyScreen() {
@@ -48,6 +50,7 @@ export default function MonthlyScreen() {
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
     if (!detectDoubleTap(`${date}-${period}`)) return;
+    hapticKeyPress();
     const existing = measurements.find((m) => m.date === date && m.period === period);
     setDialogTarget({ date, period });
     setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
@@ -88,17 +91,17 @@ export default function MonthlyScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.navBtn} onPress={prevMonth}>
+        <HapticButton style={styles.navBtn} onPress={prevMonth}>
           <Text style={styles.navText}>◀</Text>
-        </TouchableOpacity>
+        </HapticButton>
         <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
-        <TouchableOpacity
+        <HapticButton
           style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
           onPress={nextMonth}
           disabled={!canGoNext}
         >
           <Text style={[styles.navText, !canGoNext && styles.navTextDisabled]}>▶</Text>
-        </TouchableOpacity>
+        </HapticButton>
       </View>
 
       <View style={styles.colHeader}>

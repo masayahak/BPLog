@@ -2,18 +2,21 @@
   "expo": {
     "name": "BPLog",
     "slug": "bplog",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["ios"],
+    "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.hakamatasoft.bplog",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
+    },
+    "android": {
+      "package": "com.hakamatasoft.bplog"
     },
     "plugins": ["expo-localization"],
     "extra": {

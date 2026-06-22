@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Alert,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { useMeasurements } from '../context/MeasurementContext';
 import { useLocale } from '../context/LocaleContext';
 import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
 import Keypad from './Keypad';
+import HapticButton from './HapticButton';
 import { dialogStyles } from './dialogStyles';
 
 type Field = 'systolic' | 'diastolic' | 'pulse';
@@ -69,6 +69,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
     if (isLastField) {
       handleSave();
     } else {
+      hapticKeyPress();
       advanceField();
     }
   }
@@ -118,14 +119,14 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
           {initialValues != null && (
             <>
               {canDelete && (
-                <TouchableOpacity
+                <HapticButton
                   style={styles.deleteBtn}
                   onPress={handleDelete}
                   accessibilityRole="button"
                   accessibilityLabel={t('delete_record')}
                 >
                   <TrashIcon size={24} color="#fff" />
-                </TouchableOpacity>
+                </HapticButton>
               )}
               <Text style={dialogStyles.recordedLabelTop}>{t('recorded_value')}</Text>
             </>
@@ -134,7 +135,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
 
         <View style={styles.fieldsSection}>
           {FIELDS.map((field) => (
-            <TouchableOpacity
+            <HapticButton
               key={field}
               style={[
                 dialogStyles.fieldRow,
@@ -150,7 +151,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
               <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
                 {values[field] || '---'}
               </Text>
-            </TouchableOpacity>
+            </HapticButton>
           ))}
         </View>
 
@@ -164,9 +165,9 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
           enterDisabled={enterDisabled}
         />
 
-        <TouchableOpacity style={styles.closeBtn} onPress={handleClose}>
+        <HapticButton style={styles.closeBtn} onPress={handleClose}>
           <Text style={dialogStyles.closeText}>{t('close')}</Text>
-        </TouchableOpacity>
+        </HapticButton>
 
       </SafeAreaView>
       </SafeAreaProvider>

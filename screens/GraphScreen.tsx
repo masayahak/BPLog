@@ -10,6 +10,7 @@ import { formatMonthHeader, formatLegendDateParts, toDateString } from '../src/u
 import { hapticKeyPress } from '../src/haptics';
 import { useMonthNav } from '../src/hooks/useMonthNav';
 import { useDoubleTap } from '../src/hooks/useDoubleTap';
+import HapticButton from '../src/components/HapticButton';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -132,6 +133,7 @@ export default function GraphScreen() {
 
   function openDialog(field: GoalField) {
     if (!detectDoubleTap(`goal-${field}`)) return;
+    hapticKeyPress();
     setDialogInitialField(field);
     setDialogVisible(true);
   }
@@ -147,17 +149,17 @@ export default function GraphScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.navBtn} onPress={prevMonth}>
+        <HapticButton style={styles.navBtn} onPress={prevMonth}>
           <Text style={styles.navText}>◀</Text>
-        </TouchableOpacity>
+        </HapticButton>
         <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
-        <TouchableOpacity
+        <HapticButton
           style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
           onPress={nextMonth}
           disabled={!canGoNext}
         >
           <Text style={[styles.navText, !canGoNext && styles.navTextDisabled]}>▶</Text>
-        </TouchableOpacity>
+        </HapticButton>
       </View>
 
       <View style={styles.goalBar}>

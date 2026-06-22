@@ -3,11 +3,11 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
-import { hapticSave } from '../haptics';
+import { hapticSave, hapticKeyPress } from '../haptics';
+import HapticButton from './HapticButton';
 import { Goals } from '../types';
 import { useLocale } from '../context/LocaleContext';
 import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
@@ -48,6 +48,7 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
     if (isLastField) {
       handleSave();
     } else {
+      hapticKeyPress();
       advanceField();
     }
   }
@@ -75,7 +76,7 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
 
         <View style={styles.fieldsSection}>
           {FIELDS.map((field) => (
-            <TouchableOpacity
+            <HapticButton
               key={field}
               style={[
                 dialogStyles.fieldRow,
@@ -89,7 +90,7 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
               <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
                 {values[field] || '---'}
               </Text>
-            </TouchableOpacity>
+            </HapticButton>
           ))}
         </View>
 
@@ -103,9 +104,9 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
           enterDisabled={activeIsError}
         />
 
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+        <HapticButton style={styles.closeBtn} onPress={onClose}>
           <Text style={dialogStyles.closeText}>{t('close')}</Text>
-        </TouchableOpacity>
+        </HapticButton>
 
       </SafeAreaView>
       </SafeAreaProvider>

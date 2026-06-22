@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
   Linking,
@@ -12,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as StoreReview from 'expo-store-review';
 import { useLocale } from '../context/LocaleContext';
+import HapticButton from './HapticButton';
 
 const PORTFOLIO_URL = 'https://www.hakamata-soft.com/';
 
@@ -38,9 +38,9 @@ export default function InfoModal({ visible, onClose }: Props) {
 
         <View style={styles.header}>
           <Text style={styles.title}>{t('info_title')}</Text>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <HapticButton style={styles.closeBtn} onPress={onClose}>
             <Text style={styles.closeBtnText}>{t('close')}</Text>
-          </TouchableOpacity>
+          </HapticButton>
         </View>
 
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -54,21 +54,21 @@ export default function InfoModal({ visible, onClose }: Props) {
           </Section>
 
           <View style={styles.actions}>
-            <TouchableOpacity
+            <HapticButton
               style={styles.actionBtn}
               onPress={() => Linking.openURL(PORTFOLIO_URL)}
             >
               <Text style={styles.actionBtnIcon}>🌐</Text>
               <Text style={styles.actionBtnText}>{t('info_developer_site')}</Text>
-            </TouchableOpacity>
+            </HapticButton>
 
-            <TouchableOpacity
+            <HapticButton
               style={[styles.actionBtn, styles.reviewBtn]}
               onPress={handleReview}
             >
               <Text style={styles.actionBtnIcon}>⭐</Text>
               <Text style={[styles.actionBtnText, styles.reviewBtnText]}>{t('info_review_btn')}</Text>
-            </TouchableOpacity>
+            </HapticButton>
           </View>
 
         </ScrollView>

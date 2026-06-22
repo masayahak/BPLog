@@ -8,6 +8,8 @@ import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
 import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
 import { useDoubleTap } from '../src/hooks/useDoubleTap';
+import { hapticKeyPress } from '../src/haptics';
+import HapticButton from '../src/components/HapticButton';
 import InputDialog from '../src/components/InputDialog';
 
 export default function InputScreen() {
@@ -48,6 +50,7 @@ export default function InputScreen() {
   function handleCellTap(date: string, period: Period) {
     if (isFuturePeriod(date, period)) return;
     if (!detectDoubleTap(`${date}-${period}`)) return;
+    hapticKeyPress();
     const existing = getMeasurement(date, period);
     setDialogTarget({ date, period });
     setDialogInitial(existing ? { systolic: existing.systolic, diastolic: existing.diastolic, pulse: existing.pulse } : undefined);
@@ -67,13 +70,12 @@ export default function InputScreen() {
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('screen_input_title')}</Text>
-        <TouchableOpacity style={styles.infoBtn} onPress={() => setInfoVisible(true)}>
+        <HapticButton style={styles.infoBtn} onPress={() => setInfoVisible(true)}>
           <Text style={styles.infoBtnText}>ⓘ</Text>
-        </TouchableOpacity>
+        </HapticButton>
       </View>
 
       <View style={styles.content}>
-        <View style={styles.spacer} />
         <DayCard
           label={t('yesterday')}
           dateStr={yesterdayStr}
@@ -83,7 +85,6 @@ export default function InputScreen() {
           showAddPeriod={null}
           onCellTap={handleCellTap}
         />
-        <View style={styles.spacer} />
         <DayCard
           label={t('today')}
           dateStr={todayStr}
@@ -94,7 +95,6 @@ export default function InputScreen() {
           onCellTap={handleCellTap}
           onAddPress={handleAddPress}
         />
-        <View style={styles.spacer} />
       </View>
 
       <InputDialog
@@ -210,9 +210,9 @@ function MeasurementCell({
           <Text style={s.pulseText}>{t('pulse_label')} {data.pulse}</Text>
         </>
       ) : showAdd ? (
-        <TouchableOpacity style={styles.addBtn} onPress={onAddPress}>
+        <HapticButton style={styles.addBtn} onPress={onAddPress}>
           <Text style={styles.addBtnText}>＋</Text>
-        </TouchableOpacity>
+        </HapticButton>
       ) : isFuture ? (
         <Text style={styles.emptyText}>—</Text>
       ) : (
@@ -240,8 +240,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    justifyContent: 'space-evenly',
   },
-  spacer: { flex: 1 },
 
   card: {
     backgroundColor: '#fff',
