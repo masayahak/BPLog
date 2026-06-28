@@ -2,7 +2,7 @@
   "expo": {
     "name": "BPLog",
     "slug": "bplog",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,7 +10,8 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.hakamatasoft.bplog",
-      "buildNumber": "4",
+      "buildNumber": "8",
+      "appStoreUrl": "https://apps.apple.com/app/id6780784285",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

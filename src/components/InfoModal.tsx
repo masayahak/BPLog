@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Linking,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as StoreReview from 'expo-store-review';
 import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
 
@@ -24,9 +24,16 @@ export default function InfoModal({ visible, onClose }: Props) {
   const { t } = useLocale();
 
   async function handleReview() {
-    const available = await StoreReview.isAvailableAsync();
-    if (available) {
-      await StoreReview.requestReview();
+    // 明示的な「評価する」ボタンは App Store のレビュー画面を直接開く。
+    // requestReview() は本番でAppleに無言で抑制されるため、ボタンには使わない。
+    const url = Platform.select({
+      ios: 'https://apps.apple.com/app/id6780784285?action=write-review',
+      android: 'market://details?id=com.hakamatasoft.bplog',
+      default: '',
+    });
+    const canOpen = url ? await Linking.canOpenURL(url) : false;
+    if (canOpen && url) {
+      await Linking.openURL(url);
     } else {
       Alert.alert('', t('info_review_unavailable'));
     }
@@ -100,14 +107,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   closeBtn: {
     paddingHorizontal: 14,
     paddingVertical: 6,
     backgroundColor: '#2e2e4a',
     borderRadius: 8,
   },
-  closeBtnText: { fontSize: 16, color: '#ccc', fontWeight: '600' },
+  closeBtnText: { fontSize: 18, color: '#ccc', fontWeight: '600' },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 20, gap: 16 },
@@ -123,9 +130,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  sectionIcon: { fontSize: 24 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1a1a2e' },
-  body: { fontSize: 17, color: '#444', lineHeight: 26 },
+  sectionIcon: { fontSize: 26 },
+  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: '#1a1a2e' },
+  body: { fontSize: 19, color: '#444', lineHeight: 29 },
 
   actions: { gap: 12, marginTop: 4 },
   actionBtn: {
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
   reviewBtn: {
     backgroundColor: '#4361ee',
   },
-  actionBtnIcon: { fontSize: 24 },
-  actionBtnText: { fontSize: 18, fontWeight: '600', color: '#1a1a2e' },
+  actionBtnIcon: { fontSize: 26 },
+  actionBtnText: { fontSize: 20, fontWeight: '600', color: '#1a1a2e' },
   reviewBtnText: { color: '#fff' },
 });

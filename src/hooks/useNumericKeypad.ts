@@ -15,7 +15,11 @@ export const BP_RANGES: Record<'systolic' | 'diastolic' | 'pulse', Range> = {
 
 const MAX_DIGITS = 3;
 
-export function useNumericKeypad<F extends string>(fields: readonly F[], ranges: Record<F, Range>) {
+export function useNumericKeypad<F extends string>(
+  fields: readonly F[],
+  ranges: Record<F, Range>,
+  opts: { autoAdvance?: boolean } = {}
+) {
   const emptyValues = () => Object.fromEntries(fields.map((f) => [f, ''])) as Record<F, string>;
   const [values, setValues] = useState<Record<F, string>>(emptyValues);
   const [activeField, setActiveField] = useState<F>(fields[0]);
@@ -26,6 +30,11 @@ export function useNumericKeypad<F extends string>(fields: readonly F[], ranges:
     return val < ranges[field].min || val > ranges[field].max;
   }
 
+  // 入力済みかつ範囲内 = 有効値。
+  function isValid(field: F, raw: string): boolean {
+    return raw !== '' && !isOutOfRange(field, raw);
+  }
+
   // active には開始フィールドを指定できる（GoalInputDialog はタップされた行から開始する）。
   function reset(active: F = fields[0]) {
     setValues(emptyValues());
@@ -33,9 +42,16 @@ export function useNumericKeypad<F extends string>(fields: readonly F[], ranges:
   }
 
   function pressKey(key: string) {
-    if (values[activeField].length >= MAX_DIGITS) return;
+    const current = values[activeField];
+    if (current.length >= MAX_DIGITS) return;
     hapticKeyPress();
-    setValues((prev) => ({ ...prev, [activeField]: prev[activeField] + key }));
+    const next = current + key;
+    setValues((prev) => ({ ...prev, [activeField]: next }));
+    // 有効値になったら自動で次のフィールドへ送る（最終フィールドは留まる）。
+    if (opts.autoAdvance && isValid(activeField, next)) {
+      const i = fields.indexOf(activeField);
+      if (i < fields.length - 1) setActiveField(fields[i + 1]);
+    }
   }
 
   function pressDelete() {
@@ -57,6 +73,7 @@ export function useNumericKeypad<F extends string>(fields: readonly F[], ranges:
     activeField,
     setActiveField,
     isOutOfRange,
+    isValid,
     pressKey,
     pressDelete,
     advanceField,

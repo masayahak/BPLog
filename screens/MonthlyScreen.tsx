@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ROW_HEIGHT = 73;
+const ROW_HEIGHT = 82;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  monthLabel: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  monthLabel: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   navBtn: {
     paddingVertical: 7,
     paddingHorizontal: 14,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   navBtnDisabled: { backgroundColor: '#444' },
-  navText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+  navText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
   navTextDisabled: { color: '#888' },
 
   colHeader: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     borderRightColor: '#444',
   },
   periodHeader: { flex: 1, alignItems: 'center' },
-  periodHeaderText: { fontSize: 18, color: '#333', fontWeight: '600', letterSpacing: 2 },
+  periodHeaderText: { fontSize: 20, color: '#333', fontWeight: '600', letterSpacing: 2 },
 
   list: { flex: 1 },
 
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
     height: ROW_HEIGHT,
   },
 
-  dateMain: { fontSize: 17, fontWeight: 'bold', color: '#333' },
-  dateWeek: { fontSize: 18, fontWeight: 'bold' },
+  dateMain: { fontSize: 19, fontWeight: 'bold', color: '#333' },
+  dateWeek: { fontSize: 20, fontWeight: 'bold' },
 
   cellTouchable: { flex: 1 },
 
@@ -230,11 +230,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   dataCellEmpty: { backgroundColor: '#fafafa' },
-  timeText: { fontSize: 14, color: '#888', marginBottom: 2 },
-  bpText: { fontSize: 22, fontWeight: 'bold' },
+  timeText: { fontSize: 16, color: '#888', marginBottom: 2 },
+  bpText: { fontSize: 24, fontWeight: 'bold' },
   systolicText: { color: '#e63946' },
   bpSep: { color: '#888' },
   diastolicText: { color: '#4361ee' },
-  pulseText: { fontSize: 18, color: '#333', fontWeight: '600', marginTop: 2 },
-  emptyDash: { fontSize: 24, color: '#ddd' },
+  pulseText: { fontSize: 20, color: '#333', fontWeight: '600', marginTop: 2 },
+  emptyDash: { fontSize: 26, color: '#ddd' },
 });

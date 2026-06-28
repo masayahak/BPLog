@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
 });
 
 const smallStyles = {
-  periodLabel: { fontSize: 20, color: '#333', fontWeight: '600' as const, marginBottom: 6 },
+  periodLabel: { fontSize: 24, color: '#333', fontWeight: '600' as const, marginBottom: 6 },
   timeText: { fontSize: 14, color: '#bbb', marginBottom: 4 },
   bpText: { fontSize: 24, fontWeight: 'bold' as const, marginBottom: 2 },
-  pulseText: { fontSize: 18, color: '#555', fontWeight: '600' as const },
+  pulseText: { fontSize: 22, color: '#555', fontWeight: '600' as const },
 };

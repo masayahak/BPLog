@@ -49,7 +49,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
     values, activeField, setActiveField, isOutOfRange,
     pressKey, pressDelete, advanceField, reset,
     activeIsError, isLastField, allFieldsValid,
-  } = useNumericKeypad(FIELDS, BP_RANGES);
+  } = useNumericKeypad(FIELDS, BP_RANGES, { autoAdvance: true });
 
   const fieldLabels: Record<Field, string> = {
     systolic: t('field_systolic'),
