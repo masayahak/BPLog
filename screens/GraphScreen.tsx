@@ -235,6 +235,9 @@ export default function GraphScreen() {
                 />
               )}
               <LineChart
+                // isAnimated の描画クリップ幅はマウント時のデータ数で固定されるため、
+                // 月切替・記録追加時は key で再マウントして全点を描画し直す
+                key={`${ym}-${monthly.length}`}
                 data={systolicData}
                 data2={diastolicData}
                 color1="#e63946"
