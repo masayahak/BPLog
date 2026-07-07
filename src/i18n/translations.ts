@@ -3,6 +3,7 @@ export type Locale = "ja" | "en";
 type Translations = {
   tab_input: string;
   tab_list: string;
+  tab_trends: string;
   tab_graph: string;
   screen_input_title: string;
   today: string;
@@ -17,6 +18,13 @@ type Translations = {
   upper_long: string;
   lower_long: string;
   no_data: string;
+  period_7days: string;
+  period_30days: string;
+  stat_avg: string;
+  stat_max: string;
+  stat_min: string;
+  trend_bp_upper: string;
+  trend_bp_lower: string;
   field_systolic: string;
   field_diastolic: string;
   field_pulse: string;
@@ -44,6 +52,7 @@ export type TranslationKey = keyof Translations;
 const ja: Translations = {
   tab_input: "入力",
   tab_list: "一覧",
+  tab_trends: "傾向",
   tab_graph: "グラフ",
   screen_input_title: "血圧入力",
   today: "今日",
@@ -58,6 +67,13 @@ const ja: Translations = {
   upper_long: "上(収縮期)",
   lower_long: "下(拡張期)",
   no_data: "この月のデータはありません",
+  period_7days: "直近7日間",
+  period_30days: "直近30日間",
+  stat_avg: "平均",
+  stat_max: "最大",
+  stat_min: "最小",
+  trend_bp_upper: "血圧上",
+  trend_bp_lower: "血圧下",
   field_systolic: "上の血圧",
   field_diastolic: "下の血圧",
   field_pulse: "脈拍",
@@ -84,6 +100,7 @@ const ja: Translations = {
 const en: Translations = {
   tab_input: "Input",
   tab_list: "List",
+  tab_trends: "Trends",
   tab_graph: "Graph",
   screen_input_title: "Blood Pressure",
   today: "Today",
@@ -98,6 +115,13 @@ const en: Translations = {
   upper_long: "Systolic",
   lower_long: "Diastolic",
   no_data: "No data for this month",
+  period_7days: "Last 7 Days",
+  period_30days: "Last 30 Days",
+  stat_avg: "Avg",
+  stat_max: "Max",
+  stat_min: "Min",
+  trend_bp_upper: "Sys",
+  trend_bp_lower: "Dia",
   field_systolic: "Systolic",
   field_diastolic: "Diastolic",
   field_pulse: "Pulse",

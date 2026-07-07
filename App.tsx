@@ -8,6 +8,7 @@ import { MeasurementProvider } from './src/context/MeasurementContext';
 import { LocaleProvider, useLocale } from './src/context/LocaleContext';
 import InputScreen from './screens/InputScreen';
 import MonthlyScreen from './screens/MonthlyScreen';
+import TrendsScreen from './screens/TrendsScreen';
 import GraphScreen from './screens/GraphScreen';
 
 const Tab = createBottomTabNavigator();
@@ -59,6 +60,14 @@ function AppNavigator() {
           options={{
             tabBarLabel: t('tab_input'),
             tabBarIcon: () => <Text style={{ fontSize: 24 }}>📋</Text>,
+          }}
+        />
+        <Tab.Screen
+          name="Trends"
+          component={TrendsScreen}
+          options={{
+            tabBarLabel: t('tab_trends'),
+            tabBarIcon: () => <Text style={{ fontSize: 24 }}>📊</Text>,
           }}
         />
         <Tab.Screen
