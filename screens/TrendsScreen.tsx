@@ -15,7 +15,7 @@ type PeriodStats = {
 
 function stat(values: number[]) {
   return {
-    avg: Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10,
+    avg: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
     max: Math.max(...values),
     min: Math.min(...values),
   };
@@ -82,17 +82,17 @@ function TrendCard({
           </View>
         </View>
         <StatRow
+          rowLabel={t('stat_max')}
+          systolic={stats?.systolic.max}
+          diastolic={stats?.diastolic.max}
+          pulse={stats?.pulse.max}
+        />
+        <StatRow
           rowLabel={t('stat_avg')}
           systolic={stats?.systolic.avg}
           diastolic={stats?.diastolic.avg}
           pulse={stats?.pulse.avg}
           emphasize
-        />
-        <StatRow
-          rowLabel={t('stat_max')}
-          systolic={stats?.systolic.max}
-          diastolic={stats?.diastolic.max}
-          pulse={stats?.pulse.max}
         />
         <StatRow
           rowLabel={t('stat_min')}
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   valueCell: { flex: 1, alignItems: 'center' },
   colHeaderText: { fontSize: 22, color: '#555', fontWeight: '700' },
   valueText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  valueTextEmphasis: { fontSize: 24, fontWeight: '800', color: '#333' },
+  valueTextEmphasis: { fontSize: 28, fontWeight: '800', color: '#333' },
   systolicColor: { color: '#e63946' },
   diastolicColor: { color: '#4361ee' },
 });
