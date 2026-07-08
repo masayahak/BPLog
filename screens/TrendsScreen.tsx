@@ -6,6 +6,8 @@ import { useLocale } from '../src/context/LocaleContext';
 import { Measurement } from '../src/types';
 import { toDateString } from '../src/utils';
 import { TranslationKey } from '../src/i18n/translations';
+import InfoModal from '../src/components/InfoModal';
+import HapticButton from '../src/components/HapticButton';
 
 type PeriodStats = {
   systolic: { avg: number; max: number; min: number };
@@ -39,6 +41,7 @@ export default function TrendsScreen() {
   const { t } = useLocale();
   const insets = useSafeAreaInsets();
   const todayStr = toDateString(new Date());
+  const [infoVisible, setInfoVisible] = React.useState(false);
 
   const stats7 = computeStats(measurements, 7, todayStr);
   const stats30 = computeStats(measurements, 30, todayStr);
@@ -47,11 +50,15 @@ export default function TrendsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('tab_trends')}</Text>
+        <HapticButton style={styles.infoBtn} onPress={() => setInfoVisible(true)}>
+          <Text style={styles.infoBtnText}>ⓘ</Text>
+        </HapticButton>
       </View>
       <View style={styles.content}>
         <TrendCard title={t('period_7days')} stats={stats7} t={t} />
         <TrendCard title={t('period_30days')} stats={stats30} t={t} />
       </View>
+      <InfoModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
     </View>
   );
 }
@@ -141,11 +148,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f4f8' },
   header: {
     backgroundColor: '#1a1a2e',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  infoBtn: { position: 'absolute', right: 20 },
+  infoBtnText: { fontSize: 32, color: '#fff' },
   content: { flex: 1, paddingHorizontal: 16, justifyContent: 'space-evenly' },
   card: {
     backgroundColor: '#fff',

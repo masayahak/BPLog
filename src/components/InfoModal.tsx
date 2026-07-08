@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
+import ShareModal from './ShareModal';
 
 const PORTFOLIO_URL = 'https://www.hakamata-soft.com/';
 
@@ -22,6 +23,7 @@ type Props = {
 
 export default function InfoModal({ visible, onClose }: Props) {
   const { t } = useLocale();
+  const [shareVisible, setShareVisible] = React.useState(false);
 
   async function handleReview() {
     // 明示的な「評価する」ボタンは App Store のレビュー画面を直接開く。
@@ -62,24 +64,34 @@ export default function InfoModal({ visible, onClose }: Props) {
 
           <View style={styles.actions}>
             <HapticButton
+              style={[styles.actionBtn, styles.emphasizedBtn]}
+              onPress={() => setShareVisible(true)}
+            >
+              <Text style={styles.actionBtnIcon}>👥</Text>
+              <Text style={[styles.actionBtnText, styles.emphasizedBtnText]}>{t('info_share_btn')}</Text>
+            </HapticButton>
+
+            <HapticButton
+              style={styles.actionBtn}
+              onPress={handleReview}
+            >
+              <Text style={styles.actionBtnIcon}>⭐</Text>
+              <Text style={styles.actionBtnText}>{t('info_review_btn')}</Text>
+            </HapticButton>
+
+            <HapticButton
               style={styles.actionBtn}
               onPress={() => Linking.openURL(PORTFOLIO_URL)}
             >
               <Text style={styles.actionBtnIcon}>🌐</Text>
               <Text style={styles.actionBtnText}>{t('info_developer_site')}</Text>
             </HapticButton>
-
-            <HapticButton
-              style={[styles.actionBtn, styles.reviewBtn]}
-              onPress={handleReview}
-            >
-              <Text style={styles.actionBtnIcon}>⭐</Text>
-              <Text style={[styles.actionBtnText, styles.reviewBtnText]}>{t('info_review_btn')}</Text>
-            </HapticButton>
           </View>
 
         </ScrollView>
       </SafeAreaView>
+
+      <ShareModal visible={shareVisible} onClose={() => setShareVisible(false)} />
     </Modal>
   );
 }
@@ -148,10 +160,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 3,
   },
-  reviewBtn: {
+  emphasizedBtn: {
     backgroundColor: '#4361ee',
   },
   actionBtnIcon: { fontSize: 26 },
   actionBtnText: { fontSize: 20, fontWeight: '600', color: '#1a1a2e' },
-  reviewBtnText: { color: '#fff' },
+  emphasizedBtnText: { color: '#fff' },
 });

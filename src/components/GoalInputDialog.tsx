@@ -29,10 +29,10 @@ type Props = {
 export default function GoalInputDialog({ visible, initialField, currentGoals, onSave, onClose }: Props) {
   const { t } = useLocale();
   const {
-    values, activeField, setActiveField, isOutOfRange,
+    values, selected, activeField, setActiveField, isOutOfRange,
     pressKey, pressDelete, advanceField, reset,
     activeIsError, isLastField,
-  } = useNumericKeypad(FIELDS, BP_RANGES);
+  } = useNumericKeypad(FIELDS, BP_RANGES, { autoAdvance: true });
 
   const fieldLabels: Record<Field, string> = {
     systolic: t('field_systolic'),
@@ -87,7 +87,13 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
             >
               <Text style={dialogStyles.fieldLabel}>{fieldLabels[field]}</Text>
               <Text style={dialogStyles.prevValue}>{currentGoals[field]}</Text>
-              <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
+              <Text
+                style={[
+                  dialogStyles.fieldValue,
+                  activeField === field && selected[field] && dialogStyles.fieldValueSelected,
+                  isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                ]}
+              >
                 {values[field] || '---'}
               </Text>
             </HapticButton>

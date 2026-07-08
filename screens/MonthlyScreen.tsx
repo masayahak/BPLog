@@ -158,7 +158,7 @@ function DataCell({ data, pulseLabel }: { data?: Measurement; pulseLabel: string
             <Text style={styles.bpSep}>/</Text>
             <Text style={styles.diastolicText}>{data.diastolic}</Text>
           </Text>
-          <Text style={styles.pulseText}>{pulseLabel}{data.pulse}</Text>
+          <Text style={styles.pulseText}>{pulseLabel} {data.pulse}</Text>
         </>
       ) : (
         <Text style={styles.emptyDash}>—</Text>
@@ -176,18 +176,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#1a1a2e',
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   monthLabel: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   navBtn: {
-    paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     backgroundColor: '#4361ee',
     borderRadius: 8,
   },
-  navBtnDisabled: { backgroundColor: '#444' },
+  navBtnDisabled: { backgroundColor: '#555' },
   navText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
-  navTextDisabled: { color: '#888' },
+  navTextDisabled: { color: '#aaa' },
 
   colHeader: {
     flexDirection: 'row',

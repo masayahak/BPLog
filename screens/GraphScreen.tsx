@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
+import { Animated, View, Text, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-gifted-charts';
 import { useMeasurements } from '../src/context/MeasurementContext';
@@ -9,7 +9,6 @@ import { Goals, Period } from '../src/types';
 import { formatMonthHeader, formatLegendDateParts, toDateString } from '../src/utils';
 import { hapticKeyPress } from '../src/haptics';
 import { useMonthNav } from '../src/hooks/useMonthNav';
-import { useDoubleTap } from '../src/hooks/useDoubleTap';
 import HapticButton from '../src/components/HapticButton';
 import GoalInputDialog from '../src/components/GoalInputDialog';
 
@@ -60,7 +59,6 @@ export default function GraphScreen() {
   const [chartAreaHeight, setChartAreaHeight] = useState(0);
   const [legendData, setLegendData] = useState<LegendData | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const detectDoubleTap = useDoubleTap();
   const hScrollRef = useRef<ScrollView>(null);
   const lastTappedIndexRef = useRef<number>(-1);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -132,7 +130,6 @@ export default function GraphScreen() {
   }, [chartAreaHeight, ym, monthly.length, now]);
 
   function openDialog(field: GoalField) {
-    if (!detectDoubleTap(`goal-${field}`)) return;
     hapticKeyPress();
     setDialogInitialField(field);
     setDialogVisible(true);
@@ -163,17 +160,20 @@ export default function GraphScreen() {
       </View>
 
       <View style={styles.goalBar}>
-        <Text style={styles.goalBarLabel}>{t('target')}</Text>
-        <TouchableOpacity style={styles.goalItem} onPress={() => openDialog('systolic')}>
+        <HapticButton style={styles.goalBarBtn} onPress={() => openDialog('systolic')}>
+          <Text style={styles.goalBarBtnText}>{t('target')}</Text>
+          <Text style={styles.goalBarBtnChevron}>›</Text>
+        </HapticButton>
+        <View style={styles.goalItem}>
           <View style={[styles.goalDot, { backgroundColor: '#e63946' }]} />
           <Text style={styles.goalItemLabel}>{t('upper_short')}</Text>
           <Text style={styles.goalValue}>{goals.systolic}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.goalItem} onPress={() => openDialog('diastolic')}>
+        </View>
+        <View style={styles.goalItem}>
           <View style={[styles.goalDot, { backgroundColor: '#4361ee' }]} />
           <Text style={styles.goalItemLabel}>{t('lower_short')}</Text>
           <Text style={styles.goalValue}>{goals.diastolic}</Text>
-        </TouchableOpacity>
+        </View>
       </View>
 
       <Animated.View style={[styles.legend, { opacity: fadeAnim }]}>
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#1a1a2e',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 16,
   },
-  monthLabel: { fontSize: 26, fontWeight: 'bold', color: '#fff' },
+  monthLabel: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   navBtn: {
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -366,24 +366,36 @@ const styles = StyleSheet.create({
   goalBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#e8e8e8',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingVertical: 10,
     gap: 12,
   },
-  goalBarLabel: { fontSize: 16, color: '#aaa', fontWeight: '600', flex: 1, textAlign: 'center' },
+  goalBarBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#4361ee',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  goalBarBtnText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+  goalBarBtnChevron: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
   goalItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#2e2e4a',
+    backgroundColor: '#fff',
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 10,
   },
   goalDot: { width: 12, height: 12, borderRadius: 6 },
-  goalItemLabel: { fontSize: 16, color: '#ccc', fontWeight: '600' },
-  goalValue: { fontSize: 22, color: '#fff', fontWeight: 'bold', minWidth: 36, textAlign: 'right' },
+  goalItemLabel: { fontSize: 16, color: '#555', fontWeight: '600' },
+  goalValue: { fontSize: 22, color: '#1a1a2e', fontWeight: 'bold', minWidth: 36, textAlign: 'right' },
   legend: {
     flexDirection: 'row',
     alignItems: 'center',

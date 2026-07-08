@@ -48,6 +48,12 @@ export const dialogStyles = StyleSheet.create({
   fieldValueError: {
     color: '#e63946',
   },
+  fieldValueSelected: {
+    backgroundColor: '#cdd6ff',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
+  },
   prevValue: {
     fontSize: 22,
     color: '#999',

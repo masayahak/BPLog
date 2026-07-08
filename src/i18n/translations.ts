@@ -45,6 +45,10 @@ type Translations = {
   info_developer_site: string;
   info_review_btn: string;
   info_review_unavailable: string;
+  info_share_btn: string;
+  // Share modal
+  share_title: string;
+  share_intro: string;
 };
 
 export type TranslationKey = keyof Translations;
@@ -88,13 +92,16 @@ const ja: Translations = {
   info_title: "アプリについて",
   info_free_title: "完全無料",
   info_free_body:
-    "このアプリは完全に無料です。広告も、サブスクリプションも、課金機能も一切ありません。\n\nシニアエンジニアが自分のために作ったアプリを公開しています。",
+    "広告・課金・サブスクなし。シニアエンジニアが自分のために作ったアプリです。",
   info_privacy_title: "プライバシー",
   info_privacy_body:
-    "すべての測定データはお使いのデバイス内にのみ保存されます。個人情報の収集・送信は一切行いません。インターネット通信もしません。\n\nソースコードは GitHub で100%公開されています。",
+    "データは端末内のみに保存。外部への送信は一切ありません。",
   info_developer_site: "開発者のウェブサイト",
   info_review_btn: "App Store でレビューを書く",
   info_review_unavailable: "レビューは App Store 版でご利用いただけます",
+  info_share_btn: "友達にシェア",
+  share_title: "友達にシェア",
+  share_intro: "血圧が気になる方へ。\nこのQRコードをApp Storeへどうぞ。",
 };
 
 const en: Translations = {
@@ -136,13 +143,16 @@ const en: Translations = {
   info_title: "About",
   info_free_title: "Completely Free",
   info_free_body:
-    "This app is completely free — no ads, no subscriptions, no in-app purchases.\n\nA senior engineer built this for themselves and decided to share it.",
+    "No ads, no subscriptions, no purchases. Built by a senior engineer for himself.",
   info_privacy_title: "Privacy",
   info_privacy_body:
-    "All data is stored locally on your device only. No personal information is collected or transmitted. No internet connection is required.\n\nThe source code is 100% open source on GitHub.",
+    "All data stays on your device. Nothing is ever transmitted.",
   info_developer_site: "Developer's Website",
   info_review_btn: "Write a Review on App Store",
   info_review_unavailable: "Reviews are available on the App Store build",
+  info_share_btn: "Share with a Friend",
+  share_title: "Share with a Friend",
+  share_intro: "Know someone who should track\ntheir blood pressure? Share this QR code.",
 };
 
 export const translationsMap: Record<Locale, Translations> = { ja, en };

@@ -21,8 +21,12 @@ export function useNumericKeypad<F extends string>(
   opts: { autoAdvance?: boolean } = {}
 ) {
   const emptyValues = () => Object.fromEntries(fields.map((f) => [f, ''])) as Record<F, string>;
+  const emptySelected = () => Object.fromEntries(fields.map((f) => [f, false])) as Record<F, boolean>;
   const [values, setValues] = useState<Record<F, string>>(emptyValues);
-  const [activeField, setActiveField] = useState<F>(fields[0]);
+  // フィールドが「選択中」＝既存の値がまるごと選択され、次の数字入力で置き換わる状態。
+  // フォーカスを戻したときに毎回手動で消す手間をなくすためのもの。
+  const [selected, setSelected] = useState<Record<F, boolean>>(emptySelected);
+  const [activeField, setActiveFieldRaw] = useState<F>(fields[0]);
 
   function isOutOfRange(field: F, raw: string): boolean {
     if (!raw) return false;
@@ -35,33 +39,49 @@ export function useNumericKeypad<F extends string>(
     return raw !== '' && !isOutOfRange(field, raw);
   }
 
+  // フィールド切り替え時、既存の値があれば「選択中」にする。
+  function focusField(field: F) {
+    setActiveFieldRaw(field);
+    setSelected((prev) => ({ ...prev, [field]: values[field] !== '' }));
+  }
+
   // active には開始フィールドを指定できる（GoalInputDialog はタップされた行から開始する）。
   function reset(active: F = fields[0]) {
     setValues(emptyValues());
-    setActiveField(active);
+    setSelected(emptySelected());
+    setActiveFieldRaw(active);
   }
 
   function pressKey(key: string) {
-    const current = values[activeField];
+    const isSelected = selected[activeField];
+    const current = isSelected ? '' : values[activeField];
     if (current.length >= MAX_DIGITS) return;
     hapticKeyPress();
     const next = current + key;
     setValues((prev) => ({ ...prev, [activeField]: next }));
+    if (isSelected) {
+      setSelected((prev) => ({ ...prev, [activeField]: false }));
+    }
     // 有効値になったら自動で次のフィールドへ送る（最終フィールドは留まる）。
     if (opts.autoAdvance && isValid(activeField, next)) {
       const i = fields.indexOf(activeField);
-      if (i < fields.length - 1) setActiveField(fields[i + 1]);
+      if (i < fields.length - 1) focusField(fields[i + 1]);
     }
   }
 
   function pressDelete() {
     hapticDelete();
-    setValues((prev) => ({ ...prev, [activeField]: prev[activeField].slice(0, -1) }));
+    if (selected[activeField]) {
+      setValues((prev) => ({ ...prev, [activeField]: '' }));
+      setSelected((prev) => ({ ...prev, [activeField]: false }));
+    } else {
+      setValues((prev) => ({ ...prev, [activeField]: prev[activeField].slice(0, -1) }));
+    }
   }
 
   function advanceField() {
     const i = fields.indexOf(activeField);
-    if (i < fields.length - 1) setActiveField(fields[i + 1]);
+    if (i < fields.length - 1) focusField(fields[i + 1]);
   }
 
   const activeIsError = isOutOfRange(activeField, values[activeField]);
@@ -70,8 +90,9 @@ export function useNumericKeypad<F extends string>(
 
   return {
     values,
+    selected,
     activeField,
-    setActiveField,
+    setActiveField: focusField,
     isOutOfRange,
     isValid,
     pressKey,

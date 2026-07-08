@@ -233,9 +233,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   infoBtn: { position: 'absolute', right: 20 },
-  infoBtnText: { fontSize: 26, color: '#aaa' },
+  infoBtnText: { fontSize: 32, color: '#fff' },
 
   content: {
     flex: 1,

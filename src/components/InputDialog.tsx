@@ -46,7 +46,7 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
   const { addMeasurementForDate, deleteMeasurement } = useMeasurements();
   const { t } = useLocale();
   const {
-    values, activeField, setActiveField, isOutOfRange,
+    values, selected, activeField, setActiveField, isOutOfRange,
     pressKey, pressDelete, advanceField, reset,
     activeIsError, isLastField, allFieldsValid,
   } = useNumericKeypad(FIELDS, BP_RANGES, { autoAdvance: true });
@@ -148,7 +148,13 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
               {initialValues != null && (
                 <Text style={dialogStyles.prevValue}>{initialValues[field]}</Text>
               )}
-              <Text style={[dialogStyles.fieldValue, isOutOfRange(field, values[field]) && dialogStyles.fieldValueError]}>
+              <Text
+                style={[
+                  dialogStyles.fieldValue,
+                  activeField === field && selected[field] && dialogStyles.fieldValueSelected,
+                  isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                ]}
+              >
                 {values[field] || '---'}
               </Text>
             </HapticButton>
