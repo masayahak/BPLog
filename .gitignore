@@ -3,12 +3,12 @@
 #claude
 .claude/
 
-#doc
-.docs/
-
 #env
 .env
 !.env.example
+
+#personal
+.personal/
 
 # dependencies
 node_modules/
