@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, Image, StyleSheet } from 'react-native';
+import { Modal, View, Text, Image, Share, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useLocale } from '../context/LocaleContext';
@@ -7,13 +7,24 @@ import HapticButton from './HapticButton';
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6780784285';
 
+// LPのOGP設定でリンクプレビュー（タイトル・説明・アイコン）が自動表示されるため、
+// メッセージ文言は付けずURLのみ共有する。
+const LP_URLS = {
+  ja: 'https://bplog.hakamata-soft.com/',
+  en: 'https://bplog.hakamata-soft.com/en/',
+} as const;
+
 type Props = {
   visible: boolean;
   onClose: () => void;
 };
 
 export default function ShareModal({ visible, onClose }: Props) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+
+  function handleSendLink() {
+    Share.share({ message: LP_URLS[locale] });
+  }
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -30,6 +41,12 @@ export default function ShareModal({ visible, onClose }: Props) {
             <QRCode value={APP_STORE_URL} size={220} />
           </View>
           <Text style={styles.intro}>{t('share_intro')}</Text>
+
+          <HapticButton style={styles.linkBtn} onPress={handleSendLink}>
+            <Text style={styles.linkBtnIcon}>🔗</Text>
+            <Text style={styles.linkBtnText}>{t('share_link_btn')}</Text>
+          </HapticButton>
+
           <Image source={require('../../assets/icon.png')} style={styles.icon} />
         </View>
       </SafeAreaView>
@@ -75,6 +92,17 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     textAlign: 'center',
   },
+  linkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#4361ee',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  linkBtnIcon: { fontSize: 20 },
+  linkBtnText: { fontSize: 19, fontWeight: '600', color: '#fff' },
   qrBox: {
     backgroundColor: '#fff',
     borderRadius: 16,

@@ -49,6 +49,7 @@ type Translations = {
   // Share modal
   share_title: string;
   share_intro: string;
+  share_link_btn: string;
 };
 
 export type TranslationKey = keyof Translations;
@@ -102,6 +103,7 @@ const ja: Translations = {
   info_share_btn: "友達にシェア",
   share_title: "友達にシェア",
   share_intro: "血圧が気になる方へ。\nこのQRコードをApp Storeへどうぞ。",
+  share_link_btn: "リンクを送る",
 };
 
 const en: Translations = {
@@ -153,6 +155,7 @@ const en: Translations = {
   info_share_btn: "Share with a Friend",
   share_title: "Share with a Friend",
   share_intro: "Know someone who should track\ntheir blood pressure? Share this QR code.",
+  share_link_btn: "Send Link",
 };
 
 export const translationsMap: Record<Locale, Translations> = { ja, en };
