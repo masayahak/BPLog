@@ -16,12 +16,17 @@ Built by [Hakamata Software](https://www.hakamata-soft.com/) as a personal proje
 ## Free & Private
 
 - **Completely free** — no ads, no subscriptions, no in-app purchases
-- **No internet connection required** — all data stays on your device
-- **No data collection** — nothing is transmitted anywhere
+- **No Sign In** — no account, no email, just open and log
+- **Private by Design** — all data stays on your device, works completely offline
+
+## Open Source
+
+100% open source. This repository is the full source code, so anyone can
+verify exactly what BPLog does under the hood.
 
 ## Tech Stack
 
-- React Native (Expo SDK 56)
+- React Native (Expo SDK 54)
 - TypeScript
 - AsyncStorage for local persistence
 
@@ -31,4 +36,4 @@ MIT — see [LICENSE](./LICENSE)
 
 ## Privacy Policy
 
-https://www.hakamata-soft.com/bplog/privacy/index.html
+https://bplog.hakamata-soft.com/privacy/index.html
