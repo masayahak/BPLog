@@ -24,8 +24,8 @@ export default function InfoModal({ visible, onClose }: Props) {
   const [shareVisible, setShareVisible] = React.useState(false);
   const contactUrl =
     locale === 'ja'
-      ? 'https://bplog.hakamata-soft.com/#contact'
-      : 'https://bplog.hakamata-soft.com/en/#contact';
+      ? 'https://bplog.hakamata-soft.com/jp/#contact'
+      : 'https://bplog.hakamata-soft.com/#contact';
 
   async function handleReview() {
     // 明示的な「評価する」ボタンは App Store のレビュー画面を直接開く。
