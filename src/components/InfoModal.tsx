@@ -14,16 +14,18 @@ import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
 import ShareModal from './ShareModal';
 
-const PORTFOLIO_URL = 'https://www.hakamata-soft.com/';
-
 type Props = {
   visible: boolean;
   onClose: () => void;
 };
 
 export default function InfoModal({ visible, onClose }: Props) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [shareVisible, setShareVisible] = React.useState(false);
+  const contactUrl =
+    locale === 'ja'
+      ? 'https://bplog.hakamata-soft.com/#contact'
+      : 'https://bplog.hakamata-soft.com/en/#contact';
 
   async function handleReview() {
     // 明示的な「評価する」ボタンは App Store のレビュー画面を直接開く。
@@ -64,11 +66,11 @@ export default function InfoModal({ visible, onClose }: Props) {
 
           <View style={styles.actions}>
             <HapticButton
-              style={[styles.actionBtn, styles.emphasizedBtn]}
+              style={styles.actionBtn}
               onPress={() => setShareVisible(true)}
             >
               <Text style={styles.actionBtnIcon}>👥</Text>
-              <Text style={[styles.actionBtnText, styles.emphasizedBtnText]}>{t('info_share_btn')}</Text>
+              <Text style={styles.actionBtnText}>{t('info_share_btn')}</Text>
             </HapticButton>
 
             <HapticButton
@@ -81,10 +83,10 @@ export default function InfoModal({ visible, onClose }: Props) {
 
             <HapticButton
               style={styles.actionBtn}
-              onPress={() => Linking.openURL(PORTFOLIO_URL)}
+              onPress={() => Linking.openURL(contactUrl)}
             >
-              <Text style={styles.actionBtnIcon}>🌐</Text>
-              <Text style={styles.actionBtnText}>{t('info_developer_site')}</Text>
+              <Text style={styles.actionBtnIcon}>✉️</Text>
+              <Text style={styles.actionBtnText}>{t('info_contact_btn')}</Text>
             </HapticButton>
           </View>
 
@@ -160,10 +162,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 3,
   },
-  emphasizedBtn: {
-    backgroundColor: '#4361ee',
-  },
   actionBtnIcon: { fontSize: 26 },
   actionBtnText: { fontSize: 20, fontWeight: '600', color: '#1a1a2e' },
-  emphasizedBtnText: { color: '#fff' },
 });

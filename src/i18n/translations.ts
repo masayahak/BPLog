@@ -42,7 +42,7 @@ type Translations = {
   info_free_body: string;
   info_privacy_title: string;
   info_privacy_body: string;
-  info_developer_site: string;
+  info_contact_btn: string;
   info_review_btn: string;
   info_review_unavailable: string;
   info_share_btn: string;
@@ -97,7 +97,7 @@ const ja: Translations = {
   info_privacy_title: "プライバシー",
   info_privacy_body:
     "データは端末内のみに保存。外部への送信は一切ありません。",
-  info_developer_site: "開発者のウェブサイト",
+  info_contact_btn: "コンタクト",
   info_review_btn: "App Store でレビューを書く",
   info_review_unavailable: "レビューは App Store 版でご利用いただけます",
   info_share_btn: "友達にシェア",
@@ -149,7 +149,7 @@ const en: Translations = {
   info_privacy_title: "Privacy",
   info_privacy_body:
     "All data stays on your device. Nothing is ever transmitted.",
-  info_developer_site: "Developer's Website",
+  info_contact_btn: "Contact",
   info_review_btn: "Write a Review on App Store",
   info_review_unavailable: "Reviews are available on the App Store build",
   info_share_btn: "Share with a Friend",
