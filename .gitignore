@@ -3,6 +3,16 @@
 #claude
 .claude/
 
+#vscode
+.vscode/
+
+#create_icon
+create_icon/
+
+#docs & lp (moved to separate private repo)
+.docs/
+lp/
+
 #env
 .env
 !.env.example
