@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import InfoModal from '../src/components/InfoModal';
 import { Measurement, Period } from '../src/types';
 import { toDateString, toTimeString, getPeriod, getWeekdayIndex, getWeekdayColor, getDateParts, isFuturePeriod } from '../src/utils';
 import { useDoubleTap } from '../src/hooks/useDoubleTap';
+import { useNow } from '../src/hooks/useNow';
 import { hapticKeyPress } from '../src/haptics';
 import HapticButton from '../src/components/HapticButton';
 import InputDialog from '../src/components/InputDialog';
@@ -22,19 +22,7 @@ export default function InputScreen() {
   const detectDoubleTap = useDoubleTap();
   const insets = useSafeAreaInsets();
 
-  const [now, setNow] = useState(() => new Date());
-
-  // アプリを終了せず放置した場合、now は起動時の値で固定されてしまう。
-  // フォーカス復帰時とフォアグラウンド復帰時に再計算し、日付・時間帯を最新化する。
-  useFocusEffect(
-    useCallback(() => {
-      setNow(new Date());
-      const sub = AppState.addEventListener('change', (state) => {
-        if (state === 'active') setNow(new Date());
-      });
-      return () => sub.remove();
-    }, [])
-  );
+  const now = useNow();
 
   const todayStr = toDateString(now);
   const currentPeriod: Period = getPeriod(toTimeString(now));

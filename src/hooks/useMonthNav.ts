@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -9,11 +9,28 @@ export function useMonthNav() {
   const [year, setYear] = useState(() => now.getFullYear());
   const [month, setMonth] = useState(() => now.getMonth() + 1);
 
+  // フォーカス時の判定用に最新値を保持する（リスナーを張り直さないため ref で参照）。
+  const stateRef = useRef({ now, year, month });
+  stateRef.current = { now, year, month };
+
   // アプリを終了せず放置すると、now / year / month が起動時の値で固定される。
   // フォアグラウンド復帰時（画面ロック解除など）に「今」へ戻し、当月を初期表示する。
   // タブ切り替えでは発火しないため、セッション中の月送り操作は維持される。
   useFocusEffect(
     useCallback(() => {
+      // AppState イベントはフォーカス中の画面にしか届かないため、
+      // 裏に居た画面の now は古いまま（= canGoNext が false のまま）になる。
+      // フォーカス時にも now を最新化し、旧「当月」を表示していた場合だけ新しい当月へ追従する。
+      const n = new Date();
+      const prev = stateRef.current;
+      const wasCurrentMonth =
+        prev.year === prev.now.getFullYear() && prev.month === prev.now.getMonth() + 1;
+      setNow(n);
+      if (wasCurrentMonth) {
+        setYear(n.getFullYear());
+        setMonth(n.getMonth() + 1);
+      }
+
       const sub = AppState.addEventListener('change', (state) => {
         if (state === 'active') {
           const n = new Date();

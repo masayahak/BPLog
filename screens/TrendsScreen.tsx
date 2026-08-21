@@ -5,6 +5,7 @@ import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { Measurement } from '../src/types';
 import { toDateString } from '../src/utils';
+import { useNow } from '../src/hooks/useNow';
 import { TranslationKey } from '../src/i18n/translations';
 import InfoModal from '../src/components/InfoModal';
 import HapticButton from '../src/components/HapticButton';
@@ -40,7 +41,7 @@ export default function TrendsScreen() {
   const { measurements } = useMeasurements();
   const { t } = useLocale();
   const insets = useSafeAreaInsets();
-  const todayStr = toDateString(new Date());
+  const todayStr = toDateString(useNow());
   const [infoVisible, setInfoVisible] = React.useState(false);
 
   const stats7 = computeStats(measurements, 7, todayStr);
