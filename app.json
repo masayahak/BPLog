@@ -6,7 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.hakamatasoft.bplog",
@@ -23,7 +26,10 @@
         "backgroundColor": "#FAFAF8"
       }
     },
-    "plugins": ["expo-localization"],
+    "plugins": [
+      "expo-localization",
+      "expo-status-bar"
+    ],
     "locales": {
       "ja": "./locales/ja.json"
     },
