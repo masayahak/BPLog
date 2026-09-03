@@ -45,10 +45,6 @@ type Translations = {
   info_review_btn: string;
   info_review_unavailable: string;
   info_share_btn: string;
-  // Share modal
-  share_title: string;
-  share_intro: string;
-  share_link_btn: string;
 };
 
 export type TranslationKey = keyof Translations;
@@ -99,9 +95,6 @@ const ja: Translations = {
   info_review_btn: "ストアでレビューを書く",
   info_review_unavailable: "レビューはストア版でご利用いただけます",
   info_share_btn: "友達にシェア",
-  share_title: "友達にシェア",
-  share_intro: "血圧が気になる方へ。\nこのQRコードからダウンロードできます。",
-  share_link_btn: "リンクを送る",
 };
 
 const en: Translations = {
@@ -150,9 +143,6 @@ const en: Translations = {
   info_review_btn: "Write a Store Review",
   info_review_unavailable: "Reviews are available on the store build",
   info_share_btn: "Share with a Friend",
-  share_title: "Share with a Friend",
-  share_intro: "Know someone who should track\ntheir blood pressure? Share this QR code.",
-  share_link_btn: "Send Link",
 };
 
 export const translationsMap: Record<Locale, Translations> = { ja, en };

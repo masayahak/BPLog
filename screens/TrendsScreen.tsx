@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextStyle } from 'react-native';
+import { View, StyleSheet, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from '../src/components/AppText';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { Measurement } from '../src/types';

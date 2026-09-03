@@ -2,21 +2,28 @@ import React from 'react';
 import {
   Modal,
   View,
-  Text,
   ScrollView,
   StyleSheet,
   Linking,
   Alert,
   Platform,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from './AppText';
 import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
-import ShareModal from './ShareModal';
 import { colors } from '../theme/colors';
 import { dialogStyles } from './dialogStyles';
 import { MoneyIcon, LockIcon, PeopleIcon, StarIcon, MailIcon } from './icons/InfoIcons';
 import ChevronIcon from './icons/ChevronIcon';
+
+// LPのOGP設定でリンクプレビュー（タイトル・説明・アイコン）が自動表示されるため、
+// メッセージ文言は付けずURLのみ共有する。
+const LP_URLS = {
+  ja: 'https://bplog.hakamata-soft.com/',
+  en: 'https://bplog.hakamata-soft.com/en/',
+} as const;
 
 type Props = {
   visible: boolean;
@@ -25,11 +32,14 @@ type Props = {
 
 export default function InfoModal({ visible, onClose }: Props) {
   const { t, locale } = useLocale();
-  const [shareVisible, setShareVisible] = React.useState(false);
   const contactUrl =
     locale === 'ja'
       ? 'https://bplog.hakamata-soft.com/jp/#contact'
       : 'https://bplog.hakamata-soft.com/#contact';
+
+  function handleShare() {
+    Share.share({ message: LP_URLS[locale] });
+  }
 
   async function handleReview() {
     // 明示的な「評価する」ボタンは App Store のレビュー画面を直接開く。
@@ -71,11 +81,11 @@ export default function InfoModal({ visible, onClose }: Props) {
           <View style={styles.actions}>
             <HapticButton
               style={styles.actionRow}
-              onPress={() => setShareVisible(true)}
+              onPress={handleShare}
             >
               <PeopleIcon color={colors.textPrimary} />
               <Text style={styles.actionRowText}>{t('info_share_btn')}</Text>
-              <ChevronIcon direction="right" color={colors.decoration} size={20} />
+              <ChevronIcon direction="right" color={colors.textSecondary} size={20} />
             </HapticButton>
 
             <HapticButton
@@ -84,7 +94,7 @@ export default function InfoModal({ visible, onClose }: Props) {
             >
               <StarIcon color={colors.textPrimary} />
               <Text style={styles.actionRowText}>{t('info_review_btn')}</Text>
-              <ChevronIcon direction="right" color={colors.decoration} size={20} />
+              <ChevronIcon direction="right" color={colors.textSecondary} size={20} />
             </HapticButton>
 
             <HapticButton
@@ -93,14 +103,12 @@ export default function InfoModal({ visible, onClose }: Props) {
             >
               <MailIcon color={colors.textPrimary} />
               <Text style={styles.actionRowText}>{t('info_contact_btn')}</Text>
-              <ChevronIcon direction="right" color={colors.decoration} size={20} />
+              <ChevronIcon direction="right" color={colors.textSecondary} size={20} />
             </HapticButton>
           </View>
 
         </ScrollView>
       </SafeAreaView>
-
-      <ShareModal visible={shareVisible} onClose={() => setShareVisible(false)} />
     </Modal>
   );
 }
@@ -144,7 +152,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 19, fontWeight: '700', color: colors.textPrimary },
   body: { fontSize: 17, color: colors.textSecondary, lineHeight: 25 },
 
-  actions: { marginTop: 4 },
+  actions: { marginTop: 28 },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',

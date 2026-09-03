@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, View, Text, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
+import { Animated, View, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from '../src/components/AppText';
 import { LineChart } from 'react-native-gifted-charts';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';

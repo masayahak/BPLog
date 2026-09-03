@@ -51,13 +51,3 @@ export function MailIcon({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
-
-export function LinkIcon({ color, size = 24 }: IconProps) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={STROKE_WIDTH} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M9.5 14.5l5-5" />
-      <Path d="M8 12.5a3 3 0 010-4.2l2-2a3 3 0 014.2 4.2l-1 1" />
-      <Path d="M16 11.5a3 3 0 010 4.2l-2 2a3 3 0 01-4.2-4.2l1-1" />
-    </Svg>
-  );
-}

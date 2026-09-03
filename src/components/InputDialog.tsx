@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import {
   Modal,
   View,
-  Text,
   StyleSheet,
   Alert,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
+import { Text } from './AppText';
 import { hapticKeyPress, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   TextStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "../src/components/AppText";
 import { useMeasurements } from "../src/context/MeasurementContext";
 import { useLocale } from "../src/context/LocaleContext";
 import InfoModal from "../src/components/InfoModal";
@@ -451,19 +451,19 @@ const styles = StyleSheet.create({
   },
 
   todaySystolic: {
-    fontSize: 52,
+    fontSize: 44,
     fontWeight: "700",
     color: colors.systolic,
     letterSpacing: -2,
   },
   todaySlash: { fontSize: 38, fontWeight: "300", color: colors.decoration },
   todayDiastolic: {
-    fontSize: 52,
+    fontSize: 44,
     fontWeight: "700",
     color: colors.diastolic,
     letterSpacing: -2,
   },
-  todayPulse: { fontSize: 19, fontWeight: "600", color: colors.textPrimary },
+  todayPulse: { fontSize: 23, fontWeight: "600", color: colors.textPrimary },
   todayPlaceholder: {
     fontSize: 22,
     fontWeight: "500",
@@ -471,20 +471,20 @@ const styles = StyleSheet.create({
   },
 
   yesterdaySystolic: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "600",
     color: colors.systolic,
     letterSpacing: -1,
   },
   yesterdaySlash: { fontSize: 22, fontWeight: "300", color: colors.decoration },
   yesterdayDiastolic: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "600",
     color: colors.diastolic,
     letterSpacing: -1,
   },
   yesterdayPulse: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "500",
     color: colors.textSecondary,
   },

@@ -1,0 +1,8 @@
+{
+  "android": {
+    "app_name": "血圧手帳"
+  },
+  "ios": {
+    "CFBundleDisplayName": "血圧手帳"
+  }
+}

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextStyle } from 'react-native';
+import { View, FlatList, TouchableOpacity, StyleSheet, TextStyle } from 'react-native';
 
 const ROW_HEIGHT = 82;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from '../src/components/AppText';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { Measurement, Period } from '../src/types';
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bpText: { fontSize: 29, fontWeight: '600' },
+  bpText: { fontSize: 27, fontWeight: '600' },
   systolicText: { color: colors.systolic },
   bpSep: { color: colors.decoration, fontWeight: '300', fontSize: 22 },
   diastolicText: { color: colors.diastolic },

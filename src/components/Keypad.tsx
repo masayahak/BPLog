@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
+import { Text } from './AppText';
 import BackspaceIcon from './icons/BackspaceIcon';
 
 type KeypadProps = {

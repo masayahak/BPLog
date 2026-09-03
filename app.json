@@ -17,9 +17,16 @@
       }
     },
     "android": {
-      "package": "com.hakamatasoft.bplog"
+      "package": "com.hakamatasoft.bplog",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon-adaptive-foreground.png",
+        "backgroundColor": "#FAFAF8"
+      }
     },
     "plugins": ["expo-localization"],
+    "locales": {
+      "ja": "./locales/ja.json"
+    },
     "extra": {
       "eas": {
         "projectId": "fff736ff-beef-4250-ae81-78a993845ab8"

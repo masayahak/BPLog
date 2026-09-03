@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AppState, Text } from 'react-native';
+import { AppState } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from './src/components/AppText';
 import { hapticKeyPress } from './src/haptics';
 import { MeasurementProvider } from './src/context/MeasurementContext';
 import { LocaleProvider, useLocale } from './src/context/LocaleContext';

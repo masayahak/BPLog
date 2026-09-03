@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import {
   Modal,
   View,
-  Text,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
+import { Text } from './AppText';
 import { hapticSave, hapticKeyPress } from '../haptics';
 import HapticButton from './HapticButton';
 import { Goals } from '../types';
