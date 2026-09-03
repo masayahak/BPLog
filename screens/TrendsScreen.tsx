@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
@@ -7,8 +7,9 @@ import { Measurement } from '../src/types';
 import { toDateString } from '../src/utils';
 import { useNow } from '../src/hooks/useNow';
 import { TranslationKey } from '../src/i18n/translations';
-import InfoModal from '../src/components/InfoModal';
-import HapticButton from '../src/components/HapticButton';
+import { colors } from '../src/theme/colors';
+
+const tabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
 
 type PeriodStats = {
   systolic: { avg: number; max: number; min: number };
@@ -42,7 +43,6 @@ export default function TrendsScreen() {
   const { t } = useLocale();
   const insets = useSafeAreaInsets();
   const todayStr = toDateString(useNow());
-  const [infoVisible, setInfoVisible] = React.useState(false);
 
   const stats7 = computeStats(measurements, 7, todayStr);
   const stats30 = computeStats(measurements, 30, todayStr);
@@ -51,43 +51,35 @@ export default function TrendsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('tab_trends')}</Text>
-        <HapticButton style={styles.infoBtn} onPress={() => setInfoVisible(true)}>
-          <Text style={styles.infoBtnText}>ⓘ</Text>
-        </HapticButton>
       </View>
       <View style={styles.content}>
-        <TrendCard title={t('period_7days')} stats={stats7} t={t} />
-        <TrendCard title={t('period_30days')} stats={stats30} t={t} />
+        <TrendSection title={t('period_7days')} stats={stats7} t={t} topPadding={34} />
+        <TrendSection title={t('period_30days')} stats={stats30} t={t} topPadding={30} />
       </View>
-      <InfoModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
     </View>
   );
 }
 
-function TrendCard({
+function TrendSection({
   title,
   stats,
   t,
+  topPadding,
 }: {
   title: string;
   stats: PeriodStats | null;
   t: (key: TranslationKey) => string;
+  topPadding: number;
 }) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{title}</Text>
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { paddingTop: topPadding }]}>{title}</Text>
       <View style={styles.table}>
-        <View style={styles.tableRow}>
+        <View style={[styles.tableRow, styles.headerRow]}>
           <View style={styles.labelCell} />
-          <View style={styles.valueCell}>
-            <Text style={[styles.colHeaderText, styles.systolicColor]}>{t('trend_bp_upper')}</Text>
-          </View>
-          <View style={styles.valueCell}>
-            <Text style={[styles.colHeaderText, styles.diastolicColor]}>{t('trend_bp_lower')}</Text>
-          </View>
-          <View style={styles.valueCell}>
-            <Text style={styles.colHeaderText}>{t('field_pulse')}</Text>
-          </View>
+          <Text style={[styles.colHeaderText, styles.valueCell]}>{t('trend_bp_upper')}</Text>
+          <Text style={[styles.colHeaderText, styles.valueCell]}>{t('trend_bp_lower')}</Text>
+          <Text style={[styles.colHeaderText, styles.pulseCell]}>{t('field_pulse')}</Text>
         </View>
         <StatRow
           rowLabel={t('stat_max')}
@@ -107,6 +99,7 @@ function TrendCard({
           systolic={stats?.systolic.min}
           diastolic={stats?.diastolic.min}
           pulse={stats?.pulse.min}
+          isLast
         />
       </View>
     </View>
@@ -119,76 +112,64 @@ function StatRow({
   diastolic,
   pulse,
   emphasize,
+  isLast,
 }: {
   rowLabel: string;
   systolic?: number;
   diastolic?: number;
   pulse?: number;
   emphasize?: boolean;
+  isLast?: boolean;
 }) {
   const valueStyle = emphasize ? styles.valueTextEmphasis : styles.valueText;
   return (
-    <View style={[styles.tableRow, emphasize && styles.tableRowEmphasis]}>
-      <View style={styles.labelCell}>
-        <Text style={[styles.labelText, emphasize && styles.labelTextEmphasis]}>{rowLabel}</Text>
-      </View>
-      <View style={styles.valueCell}>
-        <Text style={[valueStyle, styles.systolicColor]}>{systolic ?? '—'}</Text>
-      </View>
-      <View style={styles.valueCell}>
-        <Text style={[valueStyle, styles.diastolicColor]}>{diastolic ?? '—'}</Text>
-      </View>
-      <View style={styles.valueCell}>
-        <Text style={valueStyle}>{pulse ?? '—'}</Text>
-      </View>
+    <View style={[styles.tableRow, emphasize && styles.tableRowEmphasis, isLast && styles.tableRowLast]}>
+      <Text style={[styles.labelText, emphasize && styles.labelTextEmphasis, styles.labelCell]}>{rowLabel}</Text>
+      <Text style={[valueStyle, styles.systolicColor, styles.valueCell, tabularNums]}>{systolic ?? '—'}</Text>
+      <Text style={[valueStyle, styles.diastolicColor, styles.valueCell, tabularNums]}>{diastolic ?? '—'}</Text>
+      <Text style={[valueStyle, styles.textPrimaryColor, styles.pulseCell, tabularNums]}>{pulse ?? '—'}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingTop: 2,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
   },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  infoBtn: { position: 'absolute', right: 20 },
-  infoBtnText: { fontSize: 32, color: '#fff' },
-  content: { flex: 1, paddingHorizontal: 16, justifyContent: 'space-evenly' },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  headerTitle: { fontSize: 34, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.5 },
+  content: { flex: 1, flexDirection: 'column', paddingHorizontal: 22, paddingBottom: 24 },
+  section: { flex: 1, flexDirection: 'column', minHeight: 0 },
+  sectionTitle: { fontSize: 25, fontWeight: '700', color: colors.textPrimary, paddingBottom: 12 },
+  table: {
+    flex: 1,
+    flexDirection: 'column',
+    minHeight: 0,
   },
-  cardTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 12 },
-  table: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd' },
+  headerRow: { paddingVertical: 10 },
   tableRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
-    paddingVertical: 10,
+    gap: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
   },
-  tableRowEmphasis: {
-    backgroundColor: '#eef2ff',
-    paddingVertical: 14,
-  },
-  labelCell: { width: 80, justifyContent: 'center' },
-  labelText: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  labelTextEmphasis: { fontSize: 24, color: '#1a1a2e' },
-  valueCell: { flex: 1, alignItems: 'center' },
-  colHeaderText: { fontSize: 22, color: '#555', fontWeight: '700' },
-  valueText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  valueTextEmphasis: { fontSize: 28, fontWeight: '800', color: '#333' },
-  systolicColor: { color: '#e63946' },
-  diastolicColor: { color: '#4361ee' },
+  tableRowEmphasis: { flex: 1.25 },
+  tableRowLast: { borderBottomWidth: 0 },
+  labelCell: { flex: 1 },
+  labelText: { fontSize: 21, fontWeight: '500', color: colors.textSecondary },
+  labelTextEmphasis: { fontSize: 23, fontWeight: '700', color: colors.textPrimary },
+  valueCell: { width: 78, textAlign: 'right' },
+  pulseCell: { width: 66, textAlign: 'right' },
+  colHeaderText: { fontSize: 19, fontWeight: '600', color: colors.textLabel },
+  valueText: { fontSize: 28, fontWeight: '600', color: colors.textPrimary },
+  valueTextEmphasis: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, letterSpacing: -1 },
+  systolicColor: { color: colors.systolic },
+  diastolicColor: { color: colors.diastolic },
+  textPrimaryColor: { color: colors.textPrimary },
 });

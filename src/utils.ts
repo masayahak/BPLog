@@ -18,13 +18,6 @@ export function getWeekdayLabel(dateStr: string, locale: string): string {
   return locale === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx];
 }
 
-// dayIndex: 0=Sun(red), 6=Sat(blue), else gray
-export function getWeekdayColor(dayIndex: number): string {
-  if (dayIndex === 6) return '#4361ee';
-  if (dayIndex === 0) return '#e63946';
-  return '#555';
-}
-
 export function getDateParts(dateStr: string, locale: string): { prefix: string; weekday: string; suffix: string } {
   const d = new Date(dateStr + 'T00:00:00');
   const idx = d.getDay();
@@ -40,15 +33,14 @@ export function formatMonthHeader(year: number, month: number, locale: string): 
   return `${MONTHS_EN[month - 1]} ${year}`;
 }
 
-export function formatLegendDateParts(dateStr: string, locale: string): { prefix: string; weekday: string; weekdayColor: string } {
+export function formatLegendDateParts(dateStr: string, locale: string): { prefix: string; weekday: string } {
   const d = new Date(dateStr + 'T00:00:00');
   const idx = d.getDay();
   const weekday = locale === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx];
-  const weekdayColor = getWeekdayColor(idx);
   if (locale === 'ja') {
-    return { prefix: `${d.getMonth() + 1}/${d.getDate()} `, weekday, weekdayColor };
+    return { prefix: `${d.getMonth() + 1}/${d.getDate()} `, weekday };
   }
-  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} `, weekday, weekdayColor };
+  return { prefix: `${MONTHS_EN[d.getMonth()]} ${d.getDate()} `, weekday };
 }
 
 export function toDateString(date: Date): string {

@@ -1,81 +1,94 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../theme/colors';
 
 // 入力ダイアログ（InputDialog）と目標値ダイアログ（GoalInputDialog）で共通のスタイル。
 // テンキー本体のスタイルは Keypad コンポーネント側に置く。
 export const dialogStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  dialogHeader: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 4,
+    backgroundColor: colors.background,
   },
   fieldRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    paddingHorizontal: 22,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
   },
   fieldRowActive: {
-    borderColor: '#4361ee',
-    backgroundColor: '#eef0ff',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.textPrimary,
   },
   fieldRowError: {
-    borderColor: '#e63946',
-    backgroundColor: '#fff0f1',
+    borderBottomColor: colors.systolic,
   },
   fieldLabel: {
-    fontSize: 22,
-    color: '#555',
+    fontSize: 21,
+    color: colors.textLabel,
     fontWeight: '600',
   },
+  fieldLabelActive: {
+    color: colors.textPrimary,
+  },
+  fieldValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+  },
   fieldValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a2e',
+    fontSize: 40,
+    fontWeight: '700',
+    color: colors.textPrimary,
     minWidth: 80,
     textAlign: 'right',
+    letterSpacing: -1,
   },
   fieldValueError: {
-    color: '#e63946',
+    color: colors.systolic,
   },
-  fieldValueSelected: {
-    backgroundColor: '#cdd6ff',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    overflow: 'hidden',
+  fieldValuePending: {
+    // 「選択中＝次の打鍵で全置換」を示す。面を使わず文字色だけで表現する。
+    color: colors.textSecondary,
+  },
+  caret: {
+    width: 3,
+    height: 34,
+    backgroundColor: colors.textPrimary,
   },
   prevValue: {
-    fontSize: 22,
-    color: '#999',
+    fontSize: 21,
+    color: colors.textPlaceholder,
     flex: 1,
     textAlign: 'right',
     marginRight: 16,
     fontWeight: '600',
   },
-  recordedLabelTop: {
-    flex: 1,
-    fontSize: 16,
-    color: '#999',
-    fontWeight: '600',
-    textAlign: 'right',
-    marginRight: 96,
-  },
   keypadFiller: {
     flexGrow: 1,
   },
-  closeText: {
+  saveButton: {
+    height: 64,
+    backgroundColor: colors.buttonBg,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  saveButtonDisabled: {
+    backgroundColor: colors.decoration,
+  },
+  saveButtonText: {
     fontSize: 22,
-    color: '#555',
-    fontWeight: '600',
+    fontWeight: '700',
+    color: colors.buttonText,
+  },
+  closeText: {
+    fontSize: 19,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 });

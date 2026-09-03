@@ -13,6 +13,7 @@ import { useLocale } from '../context/LocaleContext';
 import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
 import Keypad from './Keypad';
 import { dialogStyles } from './dialogStyles';
+import { colors } from '../theme/colors';
 
 type Field = 'systolic' | 'diastolic';
 
@@ -70,48 +71,58 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <SafeAreaView style={dialogStyles.container}>
 
-        <View style={dialogStyles.dialogHeader}>
-          <Text style={dialogStyles.recordedLabelTop}>{t('current_target')}</Text>
+        <View style={styles.header}>
+          <HapticButton style={styles.headerBtn} onPress={onClose}>
+            <Text style={dialogStyles.closeText}>{t('close')}</Text>
+          </HapticButton>
         </View>
 
         <View style={styles.fieldsSection}>
-          {FIELDS.map((field) => (
-            <HapticButton
-              key={field}
-              style={[
-                dialogStyles.fieldRow,
-                activeField === field && dialogStyles.fieldRowActive,
-                isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
-              ]}
-              onPress={() => setActiveField(field)}
-            >
-              <Text style={dialogStyles.fieldLabel}>{fieldLabels[field]}</Text>
-              <Text style={dialogStyles.prevValue}>{currentGoals[field]}</Text>
-              <Text
+          {FIELDS.map((field, index) => {
+            const isActive = activeField === field;
+            const isPending = isActive && selected[field];
+            const isLastRow = index === FIELDS.length - 1;
+            return (
+              <HapticButton
+                key={field}
                 style={[
-                  dialogStyles.fieldValue,
-                  activeField === field && selected[field] && dialogStyles.fieldValueSelected,
-                  isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                  dialogStyles.fieldRow,
+                  isLastRow && styles.fieldRowLast,
+                  isActive && dialogStyles.fieldRowActive,
+                  isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
                 ]}
+                onPress={() => setActiveField(field)}
               >
-                {values[field] || '---'}
-              </Text>
-            </HapticButton>
-          ))}
+                <Text style={[dialogStyles.fieldLabel, isActive && dialogStyles.fieldLabelActive]}>{fieldLabels[field]}</Text>
+                <Text style={dialogStyles.prevValue}>{currentGoals[field]}</Text>
+                <View style={dialogStyles.fieldValueRow}>
+                  <Text
+                    style={[
+                      dialogStyles.fieldValue,
+                      { color: values[field] ? colors.textPrimary : colors.textPlaceholder },
+                      isPending && dialogStyles.fieldValuePending,
+                      isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                    ]}
+                  >
+                    {values[field] || '---'}
+                  </Text>
+                  {isActive && <View style={dialogStyles.caret} />}
+                </View>
+              </HapticButton>
+            );
+          })}
         </View>
 
         <View style={dialogStyles.keypadFiller} />
 
-        <Keypad
-          onKey={pressKey}
-          onDelete={pressDelete}
-          onEnter={pressEnter}
-          enterLabel={isLastField ? t('save') : t('next')}
-          enterDisabled={activeIsError}
-        />
+        <Keypad onKey={pressKey} onDelete={pressDelete} />
 
-        <HapticButton style={styles.closeBtn} onPress={onClose}>
-          <Text style={dialogStyles.closeText}>{t('close')}</Text>
+        <HapticButton
+          style={[dialogStyles.saveButton, activeIsError && dialogStyles.saveButtonDisabled]}
+          onPress={pressEnter}
+          disabled={activeIsError}
+        >
+          <Text style={dialogStyles.saveButtonText}>{isLastField ? t('save') : t('next')}</Text>
         </HapticButton>
 
       </SafeAreaView>
@@ -121,17 +132,20 @@ export default function GoalInputDialog({ visible, initialField, currentGoals, o
 }
 
 const styles = StyleSheet.create({
-  fieldsSection: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-    gap: 10,
-  },
-  closeBtn: {
-    margin: 16,
-    padding: 18,
-    borderRadius: 14,
-    backgroundColor: '#e0e0e0',
+  header: {
+    minHeight: 60,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  headerBtn: { paddingVertical: 10, paddingHorizontal: 6 },
+  fieldsSection: {
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMain,
+  },
+  fieldRowLast: {
+    borderBottomColor: colors.borderMain,
   },
 });

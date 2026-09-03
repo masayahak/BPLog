@@ -1,11 +1,19 @@
 import React from 'react';
-import { Modal, View, Text, Image, Share, StyleSheet } from 'react-native';
+import { Modal, View, Text, Image, Share, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
+import { colors } from '../theme/colors';
+import { dialogStyles } from './dialogStyles';
+import { LinkIcon } from './icons/InfoIcons';
 
-const APP_STORE_URL = 'https://apps.apple.com/app/id6780784285';
+// OSごとのストアページ。QRコードはスキャンした端末のOSに合わせて出し分ける。
+const STORE_URL = Platform.select({
+  ios: 'https://apps.apple.com/app/id6780784285',
+  android: 'https://play.google.com/store/apps/details?id=com.hakamatasoft.bplog',
+  default: 'https://apps.apple.com/app/id6780784285',
+})!;
 
 // LPのOGP設定でリンクプレビュー（タイトル・説明・アイコン）が自動表示されるため、
 // メッセージ文言は付けずURLのみ共有する。
@@ -32,18 +40,18 @@ export default function ShareModal({ visible, onClose }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>{t('share_title')}</Text>
           <HapticButton style={styles.closeBtn} onPress={onClose}>
-            <Text style={styles.closeBtnText}>{t('close')}</Text>
+            <Text style={dialogStyles.closeText}>{t('close')}</Text>
           </HapticButton>
         </View>
 
         <View style={styles.content}>
           <View style={styles.qrBox}>
-            <QRCode value={APP_STORE_URL} size={220} />
+            <QRCode value={STORE_URL} size={220} />
           </View>
           <Text style={styles.intro}>{t('share_intro')}</Text>
 
           <HapticButton style={styles.linkBtn} onPress={handleSendLink}>
-            <Text style={styles.linkBtnIcon}>🔗</Text>
+            <LinkIcon color={colors.buttonText} size={20} />
             <Text style={styles.linkBtnText}>{t('share_link_btn')}</Text>
           </HapticButton>
 
@@ -55,24 +63,19 @@ export default function ShareModal({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  container: { flex: 1, backgroundColor: colors.background },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMain,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  closeBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    backgroundColor: '#2e2e4a',
-    borderRadius: 8,
-  },
-  closeBtnText: { fontSize: 18, color: '#ccc', fontWeight: '600' },
+  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
+  closeBtn: { paddingVertical: 6, paddingHorizontal: 4 },
 
   content: {
     flex: 1,
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
   },
   intro: {
     fontSize: 19,
-    color: '#444',
+    color: colors.textSecondary,
     lineHeight: 28,
     textAlign: 'center',
   },
@@ -96,21 +99,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#4361ee',
+    backgroundColor: colors.buttonBg,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
   },
-  linkBtnIcon: { fontSize: 20 },
-  linkBtnText: { fontSize: 19, fontWeight: '600', color: '#fff' },
+  linkBtnText: { fontSize: 19, fontWeight: '600', color: colors.buttonText },
   qrBox: {
-    backgroundColor: '#fff',
+    // QRコードは読み取り精度のため常に白背景が必要（モノクロテーマの地色は使わない例外）。
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: colors.borderMain,
   },
 });

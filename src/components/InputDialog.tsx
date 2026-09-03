@@ -7,7 +7,6 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import { hapticKeyPress, hapticSave } from '../haptics';
 import { Period } from '../types';
 import { useMeasurements } from '../context/MeasurementContext';
@@ -16,6 +15,7 @@ import { useNumericKeypad, BP_RANGES } from '../hooks/useNumericKeypad';
 import Keypad from './Keypad';
 import HapticButton from './HapticButton';
 import { dialogStyles } from './dialogStyles';
+import { colors } from '../theme/colors';
 
 type Field = 'systolic' | 'diastolic' | 'pulse';
 
@@ -30,17 +30,6 @@ type Props = {
   targetPeriod?: Period;
   initialValues?: InitialValues;
 };
-
-function TrashIcon({ size = 26, color = '#e63946' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path
-        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-        fill={color}
-      />
-    </Svg>
-  );
-}
 
 export default function InputDialog({ visible, onClose, targetDate, targetPeriod, initialValues }: Props) {
   const { addMeasurementForDate, deleteMeasurement } = useMeasurements();
@@ -115,64 +104,67 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <SafeAreaView style={dialogStyles.container}>
 
-        <View style={dialogStyles.dialogHeader}>
-          {initialValues != null && (
-            <>
-              {canDelete && (
-                <HapticButton
-                  style={styles.deleteBtn}
-                  onPress={handleDelete}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('delete_record')}
-                >
-                  <TrashIcon size={24} color="#fff" />
-                </HapticButton>
-              )}
-              <Text style={dialogStyles.recordedLabelTop}>{t('recorded_value')}</Text>
-            </>
-          )}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {canDelete && (
+              <HapticButton style={styles.deleteBtn} onPress={handleDelete}>
+                <Text style={dialogStyles.closeText}>{t('delete_record')}</Text>
+              </HapticButton>
+            )}
+          </View>
+          <HapticButton style={styles.headerBtn} onPress={handleClose}>
+            <Text style={dialogStyles.closeText}>{t('close')}</Text>
+          </HapticButton>
         </View>
 
         <View style={styles.fieldsSection}>
-          {FIELDS.map((field) => (
-            <HapticButton
-              key={field}
-              style={[
-                dialogStyles.fieldRow,
-                activeField === field && dialogStyles.fieldRowActive,
-                isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
-              ]}
-              onPress={() => setActiveField(field)}
-            >
-              <Text style={dialogStyles.fieldLabel}>{fieldLabels[field]}</Text>
-              {initialValues != null && (
-                <Text style={dialogStyles.prevValue}>{initialValues[field]}</Text>
-              )}
-              <Text
+          {FIELDS.map((field, index) => {
+            const isActive = activeField === field;
+            const isPending = isActive && selected[field];
+            const isLastRow = index === FIELDS.length - 1;
+            return (
+              <HapticButton
+                key={field}
                 style={[
-                  dialogStyles.fieldValue,
-                  activeField === field && selected[field] && dialogStyles.fieldValueSelected,
-                  isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                  dialogStyles.fieldRow,
+                  isLastRow && styles.fieldRowLast,
+                  isActive && dialogStyles.fieldRowActive,
+                  isOutOfRange(field, values[field]) && dialogStyles.fieldRowError,
                 ]}
+                onPress={() => setActiveField(field)}
               >
-                {values[field] || '---'}
-              </Text>
-            </HapticButton>
-          ))}
+                <Text style={[dialogStyles.fieldLabel, isActive && dialogStyles.fieldLabelActive]}>{fieldLabels[field]}</Text>
+                {initialValues != null && (
+                  <Text style={dialogStyles.prevValue}>{initialValues[field]}</Text>
+                )}
+                <View style={dialogStyles.fieldValueRow}>
+                  <Text
+                    style={[
+                      dialogStyles.fieldValue,
+                      { color: values[field] ? colors.textPrimary : colors.textPlaceholder },
+                      isPending && dialogStyles.fieldValuePending,
+                      isOutOfRange(field, values[field]) && dialogStyles.fieldValueError,
+                    ]}
+                  >
+                    {values[field] || '---'}
+                  </Text>
+                  {isActive && <View style={dialogStyles.caret} />}
+                </View>
+              </HapticButton>
+            );
+          })}
         </View>
 
         <View style={dialogStyles.keypadFiller} />
 
-        <Keypad
-          onKey={pressKey}
-          onDelete={pressDelete}
-          onEnter={pressEnter}
-          enterLabel={isLastField ? t('save') : t('next')}
-          enterDisabled={enterDisabled}
-        />
+        <Keypad onKey={pressKey} onDelete={pressDelete} />
 
-        <HapticButton style={styles.closeBtn} onPress={handleClose}>
-          <Text style={dialogStyles.closeText}>{t('close')}</Text>
+        <HapticButton
+          style={[dialogStyles.saveButton, enterDisabled && dialogStyles.saveButtonDisabled]}
+          onPress={pressEnter}
+          disabled={enterDisabled}
+        >
+          <Text style={dialogStyles.saveButtonText}>{isLastField ? t('save') : t('next')}</Text>
         </HapticButton>
 
       </SafeAreaView>
@@ -182,28 +174,27 @@ export default function InputDialog({ visible, onClose, targetDate, targetPeriod
 }
 
 const styles = StyleSheet.create({
-  deleteBtn: {
-    alignSelf: 'flex-start',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#e63946',
+  header: {
+    minHeight: 60,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  headerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  headerBtn: { paddingVertical: 10, paddingHorizontal: 6 },
+  deleteBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderWidth: 1.5,
+    borderColor: colors.infoBorder,
+    borderRadius: 8,
   },
   fieldsSection: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 6,
-    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMain,
   },
-  closeBtn: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: '#e0e0e0',
-    alignItems: 'center',
+  fieldRowLast: {
+    borderBottomColor: colors.borderMain,
   },
 });

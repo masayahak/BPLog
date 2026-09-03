@@ -13,6 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocale } from '../context/LocaleContext';
 import HapticButton from './HapticButton';
 import ShareModal from './ShareModal';
+import { colors } from '../theme/colors';
+import { dialogStyles } from './dialogStyles';
+import { MoneyIcon, LockIcon, PeopleIcon, StarIcon, MailIcon } from './icons/InfoIcons';
+import ChevronIcon from './icons/ChevronIcon';
 
 type Props = {
   visible: boolean;
@@ -50,43 +54,46 @@ export default function InfoModal({ visible, onClose }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>{t('info_title')}</Text>
           <HapticButton style={styles.closeBtn} onPress={onClose}>
-            <Text style={styles.closeBtnText}>{t('close')}</Text>
+            <Text style={dialogStyles.closeText}>{t('close')}</Text>
           </HapticButton>
         </View>
 
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
 
-          <Section icon="💰" title={t('info_free_title')}>
+          <Section icon={<MoneyIcon color={colors.textPrimary} />} title={t('info_free_title')}>
             <Text style={styles.body}>{t('info_free_body')}</Text>
           </Section>
 
-          <Section icon="🔒" title={t('info_privacy_title')}>
+          <Section icon={<LockIcon color={colors.textPrimary} />} title={t('info_privacy_title')}>
             <Text style={styles.body}>{t('info_privacy_body')}</Text>
           </Section>
 
           <View style={styles.actions}>
             <HapticButton
-              style={styles.actionBtn}
+              style={styles.actionRow}
               onPress={() => setShareVisible(true)}
             >
-              <Text style={styles.actionBtnIcon}>👥</Text>
-              <Text style={styles.actionBtnText}>{t('info_share_btn')}</Text>
+              <PeopleIcon color={colors.textPrimary} />
+              <Text style={styles.actionRowText}>{t('info_share_btn')}</Text>
+              <ChevronIcon direction="right" color={colors.decoration} size={20} />
             </HapticButton>
 
             <HapticButton
-              style={styles.actionBtn}
+              style={styles.actionRow}
               onPress={handleReview}
             >
-              <Text style={styles.actionBtnIcon}>⭐</Text>
-              <Text style={styles.actionBtnText}>{t('info_review_btn')}</Text>
+              <StarIcon color={colors.textPrimary} />
+              <Text style={styles.actionRowText}>{t('info_review_btn')}</Text>
+              <ChevronIcon direction="right" color={colors.decoration} size={20} />
             </HapticButton>
 
             <HapticButton
-              style={styles.actionBtn}
+              style={[styles.actionRow, styles.actionRowLast]}
               onPress={() => Linking.openURL(contactUrl)}
             >
-              <Text style={styles.actionBtnIcon}>✉️</Text>
-              <Text style={styles.actionBtnText}>{t('info_contact_btn')}</Text>
+              <MailIcon color={colors.textPrimary} />
+              <Text style={styles.actionRowText}>{t('info_contact_btn')}</Text>
+              <ChevronIcon direction="right" color={colors.decoration} size={20} />
             </HapticButton>
           </View>
 
@@ -98,11 +105,11 @@ export default function InfoModal({ visible, onClose }: Props) {
   );
 }
 
-function Section({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionIcon}>{icon}</Text>
+        {icon}
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
       {children}
@@ -111,57 +118,41 @@ function Section({ icon, title, children }: { icon: string; title: string; child
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  container: { flex: 1, backgroundColor: colors.background },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMain,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  closeBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    backgroundColor: '#2e2e4a',
-    borderRadius: 8,
-  },
-  closeBtnText: { fontSize: 18, color: '#ccc', fontWeight: '600' },
+  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
+  closeBtn: { paddingVertical: 6, paddingHorizontal: 4 },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: 20, gap: 16 },
+  scrollContent: { padding: 22 },
 
   section: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  sectionIcon: { fontSize: 26 },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: '#1a1a2e' },
-  body: { fontSize: 19, color: '#444', lineHeight: 29 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', color: colors.textPrimary },
+  body: { fontSize: 17, color: colors.textSecondary, lineHeight: 25 },
 
-  actions: { gap: 12, marginTop: 4 },
-  actionBtn: {
+  actions: { marginTop: 4 },
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 18,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
   },
-  actionBtnIcon: { fontSize: 26 },
-  actionBtnText: { fontSize: 20, fontWeight: '600', color: '#1a1a2e' },
+  actionRowLast: { borderBottomWidth: 0 },
+  actionRowText: { flex: 1, fontSize: 18, fontWeight: '600', color: colors.textPrimary },
 });

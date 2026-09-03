@@ -11,6 +11,8 @@ import { hapticKeyPress } from '../src/haptics';
 import { useMonthNav } from '../src/hooks/useMonthNav';
 import HapticButton from '../src/components/HapticButton';
 import GoalInputDialog from '../src/components/GoalInputDialog';
+import ChevronIcon from '../src/components/icons/ChevronIcon';
+import { colors } from '../src/theme/colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const Y_PADDING = 10;
@@ -19,7 +21,7 @@ const Y_PADDING = 10;
 // 選択中の縦線・X軸ラベルの絶対座標計算で共有する（ズレ防止）。
 const INITIAL_SPACING = 20;     // 左端から最初のデータ点までの距離
 const POINT_SPACING = 60;       // データ点間の距離
-const CHART_INNER_PADDING = 16; // chartWrapper の padding
+const CHART_INNER_PADDING = 12; // chartWrapper の左右padding
 const X_LABEL_WIDTH = 40;       // X軸日付ラベルの幅（中央寄せ用）
 
 // データ点 index の X 座標（chartWrapper 内ローカル座標）。
@@ -108,7 +110,7 @@ export default function GraphScreen() {
     ? calcYAxis(allValues, goals)
     : { yAxisOffset: 60, maxValue: 120, noOfSections: 12 };
 
-  const CHART_PADDING = 84 + 36; // wrapper padding(32) + chartArea padding(32) + label row(20) + LineChart internal x-axis area(36)
+  const CHART_PADDING = 14 + 20 + 36; // wrapper paddingTop(14) + label row(20) + LineChart internal x-axis area(36)
   const chartHeight = chartAreaHeight > 0 ? Math.max(chartAreaHeight - CHART_PADDING, 160) : 260;
 
   function onChartAreaLayout(e: LayoutChangeEvent) {
@@ -147,30 +149,23 @@ export default function GraphScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <HapticButton style={styles.navBtn} onPress={prevMonth}>
-          <Text style={styles.navText}>◀</Text>
+          <ChevronIcon direction="left" color={colors.textPrimary} />
         </HapticButton>
         <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
-        <HapticButton
-          style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
-          onPress={nextMonth}
-          disabled={!canGoNext}
-        >
-          <Text style={[styles.navText, !canGoNext && styles.navTextDisabled]}>▶</Text>
+        <HapticButton style={styles.navBtn} onPress={nextMonth} disabled={!canGoNext}>
+          <ChevronIcon direction="right" color={canGoNext ? colors.textPrimary : colors.infoBorder} />
         </HapticButton>
       </View>
 
       <View style={styles.goalBar}>
         <HapticButton style={styles.goalBarBtn} onPress={() => openDialog('systolic')}>
           <Text style={styles.goalBarBtnText}>{t('target')}</Text>
-          <Text style={styles.goalBarBtnChevron}>›</Text>
         </HapticButton>
         <View style={styles.goalItem}>
-          <View style={[styles.goalDot, { backgroundColor: '#e63946' }]} />
           <Text style={styles.goalItemLabel}>{t('upper_short')}</Text>
           <Text style={styles.goalValue}>{goals.systolic}</Text>
         </View>
         <View style={styles.goalItem}>
-          <View style={[styles.goalDot, { backgroundColor: '#4361ee' }]} />
           <Text style={styles.goalItemLabel}>{t('lower_short')}</Text>
           <Text style={styles.goalValue}>{goals.diastolic}</Text>
         </View>
@@ -179,32 +174,23 @@ export default function GraphScreen() {
       <Animated.View style={[styles.legend, { opacity: fadeAnim }]}>
         {legendData ? (
           <>
-            <View style={styles.legendDate}>
-              <Text style={styles.legendDateText}>
-                {legendDateParts!.prefix}
-                <Text style={{ color: legendDateParts!.weekdayColor }}>{legendDateParts!.weekday}</Text>
-                {` ${legendPeriod}`}
-              </Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#e63946' }]} />
-              <Text style={styles.legendLabel}>{t('upper_short')}</Text>
-              <Text style={[styles.legendValue, { color: '#e63946' }]}>{legendData.sys}</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#4361ee' }]} />
-              <Text style={styles.legendLabel}>{t('lower_short')}</Text>
-              <Text style={[styles.legendValue, { color: '#4361ee' }]}>{legendData.dia}</Text>
+            <Text style={styles.legendDateText}>
+              {legendDateParts!.prefix}{legendDateParts!.weekday}{` ${legendPeriod}`}
+            </Text>
+            <View style={styles.legendValueRow}>
+              <Text style={[styles.legendValue, { color: colors.systolic }]}>{legendData.sys}</Text>
+              <Text style={styles.legendSlash}>/</Text>
+              <Text style={[styles.legendValue, { color: colors.diastolic }]}>{legendData.dia}</Text>
             </View>
           </>
         ) : (
           <>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#e63946' }]} />
+              <View style={[styles.legendSwatch, { backgroundColor: colors.systolic }]} />
               <Text style={styles.legendLabel}>{t('upper_long')}</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#4361ee' }]} />
+              <View style={[styles.legendSwatch, { backgroundColor: colors.diastolic }]} />
               <Text style={styles.legendLabel}>{t('lower_long')}</Text>
             </View>
           </>
@@ -226,10 +212,9 @@ export default function GraphScreen() {
                     position: 'absolute',
                     left: CHART_INNER_PADDING + pointX(selectedIndex) - 1,
                     top: 16,
-                    width: 2,
+                    width: 1.5,
                     height: chartHeight,
-                    backgroundColor: '#444',
-                    opacity: 0.55,
+                    backgroundColor: colors.textLabel,
                     zIndex: 10,
                   }}
                 />
@@ -240,21 +225,21 @@ export default function GraphScreen() {
                 key={`${ym}-${monthly.length}`}
                 data={systolicData}
                 data2={diastolicData}
-                color1="#e63946"
-                color2="#4361ee"
-                thickness1={3}
-                thickness2={3}
-                dataPointsColor1="#e63946"
-                dataPointsColor2="#4361ee"
-                dataPointsRadius={6}
+                color1={colors.systolic}
+                color2={colors.diastolic}
+                thickness1={3.5}
+                thickness2={3.5}
+                dataPointsColor1={colors.systolic}
+                dataPointsColor2={colors.diastolic}
+                dataPointsRadius={7}
                 width={Math.max(SCREEN_WIDTH - CHART_INNER_PADDING * 2, monthly.length * POINT_SPACING)}
                 height={chartHeight}
                 hideYAxisText
                 yAxisLabelWidth={0}
                 hideRules={false}
-                rulesColor="#e0e0e0"
-                yAxisColor="#ccc"
-                xAxisColor="#ccc"
+                rulesColor={colors.chartGrid}
+                yAxisColor={colors.infoBorder}
+                xAxisColor={colors.infoBorder}
                 curved
                 isAnimated
                 initialSpacing={INITIAL_SPACING}
@@ -265,26 +250,26 @@ export default function GraphScreen() {
                 showReferenceLine1
                 referenceLine1Position={goals.systolic}
                 referenceLine1Config={{
-                  color: '#e63946',
-                  thickness: 2,
-                  dashWidth: 6,
-                  dashGap: 4,
+                  color: colors.goalLine,
+                  thickness: 1.5,
+                  dashWidth: 7,
+                  dashGap: 6,
                 }}
                 showReferenceLine2
                 referenceLine2Position={goals.diastolic}
                 referenceLine2Config={{
-                  color: '#4361ee',
-                  thickness: 2,
-                  dashWidth: 6,
-                  dashGap: 4,
+                  color: colors.goalLine,
+                  thickness: 1.5,
+                  dashWidth: 7,
+                  dashGap: 6,
                 }}
                 pointerConfig={{
                   activatePointersInstantlyOnTouch: true,
                   pointerStripWidth: 0,
                   pointerStripHeight: chartHeight,
                   pointerStripColor: 'transparent',
-                  pointer1Color: '#e63946',
-                  pointer2Color: '#4361ee',
+                  pointer1Color: colors.systolic,
+                  pointer2Color: colors.diastolic,
                   pointerLabelWidth: 1,
                   pointerLabelHeight: 1,
                   pointerLabelComponent: (items: any[]) => {
@@ -317,9 +302,9 @@ export default function GraphScreen() {
                         left: pointX(i) - X_LABEL_WIDTH / 2,
                         width: X_LABEL_WIDTH,
                         textAlign: 'center',
-                        color: '#444',
-                        fontSize: 16,
-                        fontWeight: '600',
+                        color: colors.textSecondary,
+                        fontSize: 19,
+                        fontWeight: '500',
                       }}
                     >
                       {label}
@@ -344,83 +329,62 @@ export default function GraphScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingTop: 6,
+    paddingBottom: 18,
   },
-  monthLabel: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  navBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#4361ee',
-    borderRadius: 8,
-  },
-  navBtnDisabled: { backgroundColor: '#555' },
-  navText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
-  navTextDisabled: { color: '#aaa' },
+  monthLabel: { fontSize: 27, fontWeight: '700', color: colors.textPrimary },
+  navBtn: { padding: 4 },
   goalBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8e8e8',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 22,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMain,
   },
   goalBarBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    backgroundColor: '#4361ee',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderColor: colors.textPrimary,
+    borderRadius: 9,
   },
-  goalBarBtnText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
-  goalBarBtnChevron: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+  goalBarBtnText: { fontSize: 17, color: colors.textPrimary, fontWeight: '600' },
   goalItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderRadius: 10,
+    alignItems: 'baseline',
+    gap: 8,
   },
-  goalDot: { width: 12, height: 12, borderRadius: 6 },
-  goalItemLabel: { fontSize: 16, color: '#555', fontWeight: '600' },
-  goalValue: { fontSize: 22, color: '#1a1a2e', fontWeight: 'bold', minWidth: 36, textAlign: 'right' },
+  goalItemLabel: { fontSize: 17, color: colors.textLabel, fontWeight: '600' },
+  goalValue: { fontSize: 26, color: colors.textSecondary, fontWeight: '600', textAlign: 'right' },
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
+    justifyContent: 'space-between',
+    paddingHorizontal: 22,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMain,
   },
-  legendDate: { flex: 1 },
-  legendDateText: { fontSize: 18, color: '#333', fontWeight: 'bold' },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendDot: { width: 14, height: 14, borderRadius: 7 },
-  legendLabel: { fontSize: 17, color: '#555', fontWeight: '600' },
-  legendValue: { fontSize: 26, fontWeight: 'bold', minWidth: 44 },
-  chartArea: { flex: 1, padding: 16 },
+  legendDateText: { fontSize: 21, color: colors.textPrimary, fontWeight: '600' },
+  legendValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  legendSlash: { fontSize: 24, fontWeight: '300', color: colors.decoration },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legendSwatch: { width: 16, height: 3, borderRadius: 1.5 },
+  legendLabel: { fontSize: 19, fontWeight: '600', color: colors.textSecondary },
+  legendValue: { fontSize: 32, fontWeight: '700' },
+  chartArea: { flex: 1 },
   chartWrapper: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    paddingHorizontal: 12,
+    paddingTop: 14,
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { fontSize: 22, color: '#aaa' },
+  emptyText: { fontSize: 22, color: colors.textPlaceholder },
 });

@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { colors } from '../theme/colors';
+import BackspaceIcon from './icons/BackspaceIcon';
 
 type KeypadProps = {
   onKey: (k: string) => void;
   onDelete: () => void;
-  onEnter: () => void;
-  enterLabel: string;     // t('next') | t('save')
-  enterDisabled: boolean; // 保存可否の判定は呼び出し側が行う
 };
 
 const NUMBER_ROWS = [
@@ -15,17 +14,22 @@ const NUMBER_ROWS = [
   ['7', '8', '9'],
 ];
 
-// テンキー（入力ダイアログ・目標値ダイアログ共通）。
-// flex グリッドで画面高に追従する。ハプティクスは呼び出し側ハンドラに含める。
-export default function Keypad({ onKey, onDelete, onEnter, enterLabel, enterDisabled }: KeypadProps) {
+// テンキー（入力ダイアログ・目標値ダイアログ共通）。数字と削除のみを持ち、
+// 保存/次への操作は呼び出し側がKeypadの外に独立したボタンとして描画する。
+export default function Keypad({ onKey, onDelete }: KeypadProps) {
   return (
     <View style={styles.keypadSection}>
-      {NUMBER_ROWS.map((row) => (
+      {NUMBER_ROWS.map((row, rowIndex) => (
         <View key={row[0]} style={styles.keyRow}>
-          {row.map((k) => (
+          {row.map((k, colIndex) => (
             <Pressable
               key={k}
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+              style={({ pressed }) => [
+                styles.key,
+                colIndex < row.length - 1 && styles.keyBorderRight,
+                rowIndex < NUMBER_ROWS.length && styles.keyBorderBottom,
+                pressed && styles.keyPressed,
+              ]}
               onPress={() => onKey(k)}
             >
               <Text style={styles.keyText}>{k}</Text>
@@ -35,24 +39,18 @@ export default function Keypad({ onKey, onDelete, onEnter, enterLabel, enterDisa
       ))}
       <View style={styles.keyRow}>
         <Pressable
-          style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+          style={({ pressed }) => [styles.key, styles.keyBorderRight, pressed && styles.keyPressed]}
           onPress={onDelete}
         >
-          <Text style={styles.keyText}>⌫</Text>
+          <BackspaceIcon color={colors.textSecondary} />
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+          style={({ pressed }) => [styles.key, styles.keyBorderRight, pressed && styles.keyPressed]}
           onPress={() => onKey('0')}
         >
           <Text style={styles.keyText}>0</Text>
         </Pressable>
-        <Pressable
-          style={[styles.key, styles.keyEnter, enterDisabled && styles.keyEnterDisabled]}
-          onPress={onEnter}
-          disabled={enterDisabled}
-        >
-          <Text style={[styles.keyText, styles.keyEnterText]}>{enterLabel}</Text>
-        </Pressable>
+        <View style={styles.key} />
       </View>
     </View>
   );
@@ -63,9 +61,6 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     flexShrink: 1,
     flexBasis: 400,
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 4,
   },
   keyRow: {
     flex: 1,
@@ -73,33 +68,23 @@ const styles = StyleSheet.create({
   },
   key: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+  },
+  keyBorderRight: {
+    borderRightWidth: 1,
+    borderRightColor: colors.borderSub,
+  },
+  keyBorderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
   },
   keyPressed: {
-    backgroundColor: '#d0d0d0',
-  },
-  keyEnter: {
-    backgroundColor: '#4361ee',
-  },
-  keyEnterDisabled: {
-    backgroundColor: '#b0b0b0',
+    backgroundColor: colors.borderSub,
   },
   keyText: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#1a1a2e',
-  },
-  keyEnterText: {
-    color: '#fff',
-    fontSize: 22,
+    fontSize: 34,
+    fontWeight: '500',
+    color: colors.textPrimary,
   },
 });

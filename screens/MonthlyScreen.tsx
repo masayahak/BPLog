@@ -1,17 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextStyle } from 'react-native';
 
 const ROW_HEIGHT = 82;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurements } from '../src/context/MeasurementContext';
 import { useLocale } from '../src/context/LocaleContext';
 import { Measurement, Period } from '../src/types';
-import { getMonthDates, getWeekdayIndex, getWeekdayLabel, getWeekdayColor, formatMonthHeader, isFuturePeriod } from '../src/utils';
+import { getMonthDates, getWeekdayLabel, formatMonthHeader, isFuturePeriod, toDateString } from '../src/utils';
 import { useMonthNav } from '../src/hooks/useMonthNav';
 import { useDoubleTap } from '../src/hooks/useDoubleTap';
+import { useNow } from '../src/hooks/useNow';
 import { hapticKeyPress } from '../src/haptics';
 import HapticButton from '../src/components/HapticButton';
 import InputDialog from '../src/components/InputDialog';
+import ChevronIcon from '../src/components/icons/ChevronIcon';
+import { colors } from '../src/theme/colors';
+
+const tabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
 
 export default function MonthlyScreen() {
   const { measurements } = useMeasurements();
@@ -23,6 +28,7 @@ export default function MonthlyScreen() {
   const [dialogInitial, setDialogInitial] = useState<{ systolic: number; diastolic: number; pulse: number } | undefined>();
   const detectDoubleTap = useDoubleTap();
   const flatListRef = useRef<FlatList>(null);
+  const todayStr = toDateString(useNow());
 
   useEffect(() => {
     if (year === now.getFullYear() && month === now.getMonth() + 1) {
@@ -58,25 +64,16 @@ export default function MonthlyScreen() {
   }
 
   function renderRow({ item }: { item: Row }) {
-    const dayIdx = getWeekdayIndex(item.date);
     const w = getWeekdayLabel(item.date, locale);
-    const mm = item.date.slice(5, 7);
-    const dd = item.date.slice(8, 10);
+    const dd = String(parseInt(item.date.slice(8, 10), 10));
+    const isToday = item.date === todayStr;
 
     return (
       <View style={styles.row}>
         <View style={styles.dateCol}>
-          {locale === 'en' ? (
-            <>
-              <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
-              <Text style={styles.dateMain}>{dd}</Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.dateMain}>{mm}/{dd}</Text>
-              <Text style={[styles.dateWeek, { color: getWeekdayColor(dayIdx) }]}>{w}</Text>
-            </>
-          )}
+          <Text style={[styles.dateMain, isToday && styles.dateMainToday]}>
+            {dd} <Text style={styles.dateWeek}>({w})</Text>
+          </Text>
         </View>
         <TouchableOpacity style={styles.cellTouchable} onPress={() => handleCellTap(item.date, 'AM')}>
           <DataCell data={item.am} pulseLabel={t('pulse_label')} />
@@ -92,15 +89,11 @@ export default function MonthlyScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <HapticButton style={styles.navBtn} onPress={prevMonth}>
-          <Text style={styles.navText}>◀</Text>
+          <ChevronIcon direction="left" color={colors.textPrimary} />
         </HapticButton>
         <Text style={styles.monthLabel}>{formatMonthHeader(year, month, locale)}</Text>
-        <HapticButton
-          style={[styles.navBtn, !canGoNext && styles.navBtnDisabled]}
-          onPress={nextMonth}
-          disabled={!canGoNext}
-        >
-          <Text style={[styles.navText, !canGoNext && styles.navTextDisabled]}>▶</Text>
+        <HapticButton style={styles.navBtn} onPress={nextMonth} disabled={!canGoNext}>
+          <ChevronIcon direction="right" color={canGoNext ? colors.textPrimary : colors.infoBorder} />
         </HapticButton>
       </View>
 
@@ -149,16 +142,15 @@ export default function MonthlyScreen() {
 
 function DataCell({ data, pulseLabel }: { data?: Measurement; pulseLabel: string }) {
   return (
-    <View style={[styles.dataCell, !data && styles.dataCellEmpty]}>
+    <View style={styles.dataCell}>
       {data ? (
         <>
-          {data.time ? <Text style={styles.timeText}>{data.time}</Text> : null}
           <Text style={styles.bpText}>
-            <Text style={styles.systolicText}>{data.systolic}</Text>
-            <Text style={styles.bpSep}>/</Text>
-            <Text style={styles.diastolicText}>{data.diastolic}</Text>
+            <Text style={[styles.systolicText, tabularNums]}>{data.systolic}</Text>
+            <Text style={styles.bpSep}> / </Text>
+            <Text style={[styles.diastolicText, tabularNums]}>{data.diastolic}</Text>
           </Text>
-          <Text style={styles.pulseText}>{pulseLabel} {data.pulse}</Text>
+          <Text style={[styles.pulseText, tabularNums]}>{pulseLabel} {data.pulse}</Text>
         </>
       ) : (
         <Text style={styles.emptyDash}>—</Text>
@@ -168,56 +160,49 @@ function DataCell({ data, pulseLabel }: { data?: Measurement; pulseLabel: string
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  container: { flex: 1, backgroundColor: colors.background },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: 22,
+    paddingTop: 6,
+    paddingBottom: 18,
   },
-  monthLabel: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  navBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#4361ee',
-    borderRadius: 8,
-  },
-  navBtnDisabled: { backgroundColor: '#555' },
-  navText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
-  navTextDisabled: { color: '#aaa' },
+  monthLabel: { fontSize: 27, fontWeight: '700', color: colors.textPrimary },
+  navBtn: { padding: 4 },
 
   colHeader: {
     flexDirection: 'row',
-    backgroundColor: '#e8e8e8',
-    paddingVertical: 6,
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: colors.borderMain,
   },
   dateCol: {
-    width: 64,
-    alignItems: 'center',
+    width: 74,
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#444',
   },
   periodHeader: { flex: 1, alignItems: 'center' },
-  periodHeaderText: { fontSize: 20, color: '#333', fontWeight: '600', letterSpacing: 2 },
+  periodHeaderText: { fontSize: 18, color: colors.textLabel, fontWeight: '600' },
 
   list: { flex: 1 },
 
   row: {
     flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
-    backgroundColor: '#fff',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSub,
     height: ROW_HEIGHT,
+    paddingHorizontal: 22,
   },
 
-  dateMain: { fontSize: 19, fontWeight: 'bold', color: '#333' },
-  dateWeek: { fontSize: 20, fontWeight: 'bold' },
+  dateMain: { fontSize: 19, fontWeight: '600', color: colors.textSecondary },
+  dateMainToday: { fontWeight: '700', color: colors.textPrimary },
+  dateWeek: { fontSize: 16, fontWeight: '600', color: colors.textLabel },
 
   cellTouchable: { flex: 1 },
 
@@ -225,16 +210,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#e0e0e0',
-    paddingVertical: 8,
   },
-  dataCellEmpty: { backgroundColor: '#fafafa' },
-  timeText: { fontSize: 16, color: '#888', marginBottom: 2 },
-  bpText: { fontSize: 24, fontWeight: 'bold' },
-  systolicText: { color: '#e63946' },
-  bpSep: { color: '#888' },
-  diastolicText: { color: '#4361ee' },
-  pulseText: { fontSize: 20, color: '#333', fontWeight: '600', marginTop: 2 },
-  emptyDash: { fontSize: 26, color: '#ddd' },
+  bpText: { fontSize: 29, fontWeight: '600' },
+  systolicText: { color: colors.systolic },
+  bpSep: { color: colors.decoration, fontWeight: '300', fontSize: 22 },
+  diastolicText: { color: colors.diastolic },
+  pulseText: { fontSize: 19, color: colors.textPrimary, fontWeight: '500', marginTop: 6 },
+  emptyDash: { fontSize: 20, color: colors.decoration, fontWeight: '500' },
 });

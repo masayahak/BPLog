@@ -11,6 +11,7 @@ type Translations = {
   am: string;
   pm: string;
   not_recorded: string;
+  record_action: string;
   pulse_label: string;
   target: string;
   upper_short: string;
@@ -28,8 +29,6 @@ type Translations = {
   field_systolic: string;
   field_diastolic: string;
   field_pulse: string;
-  recorded_value: string;
-  current_target: string;
   next: string;
   save: string;
   close: string;
@@ -65,6 +64,7 @@ const ja: Translations = {
   am: "午前",
   pm: "午後",
   not_recorded: "未測定",
+  record_action: "記録する",
   pulse_label: "脈",
   target: "目標値",
   upper_short: "上",
@@ -82,8 +82,6 @@ const ja: Translations = {
   field_systolic: "上の血圧",
   field_diastolic: "下の血圧",
   field_pulse: "脈拍",
-  recorded_value: "記録済みの値",
-  current_target: "目標の現在値",
   next: "次へ",
   save: "保存",
   close: "閉じる",
@@ -98,11 +96,11 @@ const ja: Translations = {
   info_privacy_body:
     "データは端末内のみに保存。外部への送信は一切ありません。",
   info_contact_btn: "コンタクト",
-  info_review_btn: "App Store でレビューを書く",
-  info_review_unavailable: "レビューは App Store 版でご利用いただけます",
+  info_review_btn: "ストアでレビューを書く",
+  info_review_unavailable: "レビューはストア版でご利用いただけます",
   info_share_btn: "友達にシェア",
   share_title: "友達にシェア",
-  share_intro: "血圧が気になる方へ。\nこのQRコードをApp Storeへどうぞ。",
+  share_intro: "血圧が気になる方へ。\nこのQRコードからダウンロードできます。",
   share_link_btn: "リンクを送る",
 };
 
@@ -117,6 +115,7 @@ const en: Translations = {
   am: "AM",
   pm: "PM",
   not_recorded: "Not recorded",
+  record_action: "Record",
   pulse_label: "P",
   target: "Target",
   upper_short: "Sys",
@@ -134,8 +133,6 @@ const en: Translations = {
   field_systolic: "Systolic",
   field_diastolic: "Diastolic",
   field_pulse: "Pulse",
-  recorded_value: "Recorded value",
-  current_target: "Current target",
   next: "Next",
   save: "Save",
   close: "Close",
@@ -150,8 +147,8 @@ const en: Translations = {
   info_privacy_body:
     "All data stays on your device. Nothing is ever transmitted.",
   info_contact_btn: "Contact",
-  info_review_btn: "Write a Review on App Store",
-  info_review_unavailable: "Reviews are available on the App Store build",
+  info_review_btn: "Write a Store Review",
+  info_review_unavailable: "Reviews are available on the store build",
   info_share_btn: "Share with a Friend",
   share_title: "Share with a Friend",
   share_intro: "Know someone who should track\ntheir blood pressure? Share this QR code.",
